@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Instrument Serif", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+
+  --color-dark-bg: #0a0a0c;
+  --color-dark-surface: #111114;
+  --color-dark-card: #151518;
+  --color-dark-border: #222227;
+  --color-dark-border-hover: #383842;
+  --color-text-muted: #8e8e99;
+  --color-text-light: #f4f4f5;
+  --color-accent-amber: #e4a853;
+  --color-accent-blue: #38bdf8;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html, body {
+  background-color: #0a0a0c;
+  color: #f4f4f5;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0c;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* Lenis smooth scrolling recommendations */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* Typography utilities */
+.font-editorial-serif {
+  font-family: "Instrument Serif", Georgia, serif;
+}
+
+.font-editorial-sans {
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+}
+
+.font-editorial-display {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+}
+
+/* Subtle editorial grid overlay */
+.bg-editorial-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+/* Mask text animation utility */
+.clip-text-mask {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+
+/* Noise texture overlay for editorial depth */
+.noise-overlay {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
