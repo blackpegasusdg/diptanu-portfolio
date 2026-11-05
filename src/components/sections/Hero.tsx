@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { personalData } from '../../data/portfolioData';
@@ -117,8 +117,8 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
 
       {/* Main Hero Split Grid: Typography & 3D Interactive Polytope */}
       <div className="my-auto py-8 md:py-12 z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-        {/* Left Column with soft shadow scrim for perfect contrast over portrait */}
-        <div className="lg:col-span-7 bg-gradient-to-r from-[#070709]/85 via-[#070709]/65 to-transparent p-4 sm:p-6 md:p-8 rounded-3xl backdrop-blur-[2px]">
+        {/* Left Column */}
+        <div className="lg:col-span-7">
           <div className="overflow-hidden mb-2">
             <p className="text-xs sm:text-sm uppercase tracking-[0.3em] text-[#a1a1aa] font-editorial-display flex items-center gap-2">
               <Terminal className="w-4 h-4 text-[#e4a853]" />

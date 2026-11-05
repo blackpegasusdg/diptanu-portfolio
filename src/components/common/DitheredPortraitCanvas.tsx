@@ -39,7 +39,7 @@ export const DitheredPortraitCanvas: React.FC<DitheredPortraitCanvasProps> = ({
 
     // Load authentic portrait texture
     const textureLoader = new THREE.TextureLoader();
-    const portraitTexture = textureLoader.load('/diptanu-portrait.jpg', (tex) => {
+    const portraitTexture = textureLoader.load('/diptanu-portrait.png', (tex) => {
       portraitTexture.minFilter = THREE.LinearFilter;
       portraitTexture.magFilter = THREE.LinearFilter;
       portraitTexture.generateMipmaps = false;
@@ -236,7 +236,7 @@ export const DitheredPortraitCanvas: React.FC<DitheredPortraitCanvasProps> = ({
       uTexture: { value: portraitTexture },
       uScrollProgress: { value: 0.0 },
       uResolution: { value: new THREE.Vector2(container.clientWidth, container.clientHeight) },
-      uImageResolution: { value: new THREE.Vector2(855, 1024) },
+      uImageResolution: { value: new THREE.Vector2(768, 1024) },
       uMouse: { value: new THREE.Vector2(0, 0) },
       uTime: { value: 0 },
       uTapReveal: { value: 0.0 },
