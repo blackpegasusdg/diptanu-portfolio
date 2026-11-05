@@ -22,6 +22,7 @@ export const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Initialize Lenis smooth scroll
@@ -58,6 +59,37 @@ export const App: React.FC = () => {
       });
     }
 
+    // Dynamic background color shifts between sections
+    const sectionColors = [
+      { id: 'home', bg: '#070709' },
+      { id: 'about', bg: '#090a12' },
+      { id: 'skills', bg: '#080c16' },
+      { id: 'projects', bg: '#0d0d14' },
+      { id: 'learning', bg: '#0b0a16' },
+      { id: 'contact', bg: '#08080a' },
+    ];
+
+    sectionColors.forEach(({ id, bg }) => {
+      const el = document.getElementById(id);
+      if (el && mainRef.current) {
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 50%',
+          end: 'bottom 50%',
+          onEnter: () => {
+            if (mainRef.current) {
+              mainRef.current.style.backgroundColor = bg;
+            }
+          },
+          onEnterBack: () => {
+            if (mainRef.current) {
+              mainRef.current.style.backgroundColor = bg;
+            }
+          },
+        });
+      }
+    });
+
     return () => {
       gsap.ticker.remove(tickerCallback);
       lenis.destroy();
@@ -74,7 +106,10 @@ export const App: React.FC = () => {
   ];
 
   return (
-    <div className="relative min-h-screen bg-[#0a0a0c] text-[#f4f4f5] selection:bg-[#27272a] selection:text-white">
+    <div
+      ref={mainRef}
+      className="relative min-h-screen bg-[#070709] text-[#f4f4f5] selection:bg-[#27272a] selection:text-white transition-colors duration-700 ease-out"
+    >
       {/* Precision Top Scroll Progress Bar */}
       <div
         ref={progressBarRef}

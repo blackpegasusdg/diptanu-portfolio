@@ -1,7 +1,8 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import type { Project } from '../../types/portfolio';
-import { X, ExternalLink, Music, CheckCircle2, Sliders } from 'lucide-react';
+import { X, ExternalLink, Music, CheckCircle2, Sliders, Volume2, VolumeX } from 'lucide-react';
 import { GithubIcon } from '../common/BrandIcons';
+import { GnnGraphPlayground } from '../common/GnnGraphPlayground';
 
 interface ProjectModalProps {
   project: Project | null;
@@ -14,18 +15,72 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
   const [skew, setSkew] = useState(80);
   const [clustering, setClustering] = useState(70);
 
-  // A10s Walkman interactive player state
+  // A10s Walkman interactive player & Web Audio API state
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioFormat, setAudioFormat] = useState<'FLAC' | 'MP3'>('FLAC');
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const oscRef = useRef<OscillatorNode | null>(null);
 
   if (!project) return null;
 
   // Real-time calculation for Trustlens simulator
   const attackScore = Math.min(
     100,
-    Math.round((velocity * 0.35 + skew * 0.4 + clustering * 0.25))
+    Math.round(velocity * 0.35 + skew * 0.4 + clustering * 0.25)
   );
   const isAttack = attackScore > 60;
+
+  // Real Web Audio API synthesizer for A10s Walkman demo
+  const toggleAudioSynthesis = () => {
+    if (isPlaying) {
+      if (oscRef.current) {
+        oscRef.current.stop();
+        oscRef.current.disconnect();
+        oscRef.current = null;
+      }
+      setIsPlaying(false);
+    } else {
+      try {
+        const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const ctx = audioCtxRef.current || new AudioContextClass();
+        audioCtxRef.current = ctx;
+
+        if (ctx.state === 'suspended') {
+          ctx.resume();
+        }
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        // High-resolution warm frequency (432 Hz warm harmonic tone)
+        osc.type = audioFormat === 'FLAC' ? 'sine' : 'sawtooth';
+        osc.frequency.setValueAtTime(audioFormat === 'FLAC' ? 432 : 320, ctx.currentTime);
+
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.04, ctx.currentTime + 0.5);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+
+        oscRef.current = osc;
+        setIsPlaying(true);
+      } catch {
+        // Fallback if browser audio permissions block
+        setIsPlaying(true);
+      }
+    }
+  };
+
+  const handleModalClose = () => {
+    if (oscRef.current) {
+      oscRef.current.stop();
+      oscRef.current.disconnect();
+      oscRef.current = null;
+    }
+    setIsPlaying(false);
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 bg-[#070709]/85 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
@@ -49,7 +104,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
           </div>
 
           <button
-            onClick={onClose}
+            onClick={handleModalClose}
             className="p-2 rounded-full bg-[#18181c] border border-white/10 text-[#a1a1aa] hover:text-white hover:border-white/40 transition-colors cursor-pointer"
             aria-label="Close modal"
           >
@@ -158,25 +213,42 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
             </div>
           )}
 
-          {/* Interactive Feature Player for A10s Walkman */}
+          {/* Interactive Feature Playground for GNN Fraud Detection */}
+          {project.id === 'gnn-fraud' && (
+            <GnnGraphPlayground />
+          )}
+
+          {/* Interactive Feature Player for A10s Walkman with Real Web Audio Synthesis */}
           {project.id === 'a10s-walkman' && (
             <div className="p-6 rounded-2xl bg-[#14141a] border border-[#27272a]">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Music className="w-4 h-4 text-emerald-400" />
                   <span className="text-xs uppercase tracking-widest text-white font-editorial-display font-medium">
-                    FLAC Bit-Perfect Audio Engine Demo
+                    FLAC Bit-Perfect Audio Engine Demo • Real Web Audio
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setAudioFormat('MP3')}
+                    onClick={() => {
+                      setAudioFormat('MP3');
+                      if (isPlaying && oscRef.current) {
+                        oscRef.current.frequency.setValueAtTime(320, audioCtxRef.current!.currentTime);
+                        oscRef.current.type = 'sawtooth';
+                      }
+                    }}
                     className={`text-xs px-2.5 py-1 rounded-full border cursor-pointer ${audioFormat === 'MP3' ? 'bg-white text-black border-white' : 'bg-[#18181c] text-[#71717a] border-white/10'}`}
                   >
                     128 kbps MP3
                   </button>
                   <button
-                    onClick={() => setAudioFormat('FLAC')}
+                    onClick={() => {
+                      setAudioFormat('FLAC');
+                      if (isPlaying && oscRef.current) {
+                        oscRef.current.frequency.setValueAtTime(432, audioCtxRef.current!.currentTime);
+                        oscRef.current.type = 'sine';
+                      }
+                    }}
                     className={`text-xs px-2.5 py-1 rounded-full border cursor-pointer ${audioFormat === 'FLAC' ? 'bg-emerald-400 text-black border-emerald-400 font-bold' : 'bg-[#18181c] text-[#71717a] border-white/10'}`}
                   >
                     24-Bit / 96kHz FLAC
@@ -190,7 +262,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                   const barHeight = isPlaying
                     ? audioFormat === 'FLAC'
                       ? Math.max(15, (Math.sin(i * 0.4 + Date.now() * 0.005) * 50 + 50) % 90 + 10)
-                      : Math.max(10, ((i % 4) * 15 + 10))
+                      : Math.max(10, (i % 4) * 15 + 10)
                     : 15;
                   return (
                     <div
@@ -202,16 +274,17 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                 })}
               </div>
 
-              <div className="mt-4 flex items-center justify-between text-xs">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    className="px-4 py-1.5 rounded-full bg-white text-black font-semibold text-xs uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer"
+                    onClick={toggleAudioSynthesis}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-black font-semibold text-xs uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer active:scale-95"
                   >
-                    {isPlaying ? 'Pause Simulation' : 'Test Audio Playback'}
+                    {isPlaying ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                    <span>{isPlaying ? 'Mute Audio Tone' : 'Play Audio Tone (Live Synth)'}</span>
                   </button>
                   <span className="text-[#a1a1aa] font-mono">
-                    {audioFormat === 'FLAC' ? 'Direct bit-stream uncompressed' : 'Standard lossy psychoacoustic'}
+                    {audioFormat === 'FLAC' ? '432 Hz Sine (Uncompressed Bit-Perfect)' : '320 Hz Sawtooth (Compressed)'}
                   </span>
                 </div>
                 <span className="text-[#71717a] font-mono">
@@ -283,7 +356,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
           </div>
 
           <button
-            onClick={onClose}
+            onClick={handleModalClose}
             className="text-xs uppercase tracking-wider text-[#71717a] hover:text-white transition-colors cursor-pointer"
           >
             Close Window

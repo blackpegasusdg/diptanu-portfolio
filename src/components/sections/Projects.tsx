@@ -5,7 +5,7 @@ import { SectionHeading } from '../common/SectionHeading';
 import { projectsData } from '../../data/portfolioData';
 import type { Project } from '../../types/portfolio';
 import { ProjectModal } from './ProjectModal';
-import { ArrowUpRight, ExternalLink, SlidersHorizontal } from 'lucide-react';
+import { ArrowUpRight, ExternalLink, SlidersHorizontal, Shield, Network, Music2, Sparkles } from 'lucide-react';
 import { GithubIcon } from '../common/BrandIcons';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -60,6 +60,43 @@ export const Projects: React.FC = () => {
     cardElement.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
   };
 
+  const getProjectTheme = (id: string) => {
+    switch (id) {
+      case 'trustlens':
+        return {
+          icon: Shield,
+          accent: '#38bdf8',
+          borderHover: 'hover:border-[#38bdf8]/60',
+          badgeBg: 'bg-sky-500/10 text-sky-300 border-sky-500/20',
+          glow: 'from-sky-500/5 via-transparent to-transparent',
+        };
+      case 'gnn-fraud':
+        return {
+          icon: Network,
+          accent: '#c084fc',
+          borderHover: 'hover:border-[#c084fc]/60',
+          badgeBg: 'bg-purple-500/10 text-purple-300 border-purple-500/20',
+          glow: 'from-purple-500/5 via-transparent to-transparent',
+        };
+      case 'a10s-walkman':
+        return {
+          icon: Music2,
+          accent: '#e4a853',
+          borderHover: 'hover:border-[#e4a853]/60',
+          badgeBg: 'bg-amber-500/10 text-amber-300 border-amber-500/20',
+          glow: 'from-amber-500/5 via-transparent to-transparent',
+        };
+      default:
+        return {
+          icon: Sparkles,
+          accent: '#e4a853',
+          borderHover: 'hover:border-white/40',
+          badgeBg: 'bg-white/10 text-white border-white/20',
+          glow: 'from-white/5 via-transparent to-transparent',
+        };
+    }
+  };
+
   return (
     <section
       id="projects"
@@ -70,106 +107,128 @@ export const Projects: React.FC = () => {
         index="03"
         tagline="Selected Works"
         title="Featured Systems & Research Projects"
-        description="Crafted software projects with architectural depth, real-world utility, and verified codebases. Experience sticky card depth on scroll."
+        description="Every project card is an interactive object. Tap or inspect any project to launch its bespoke interactive playground."
       />
 
       <div className="relative space-y-16 md:space-y-24">
-        {projectsData.map((project, idx) => (
-          <div
-            key={project.id}
-            ref={(el) => { cardsRef.current[idx] = el; }}
-            style={{
-              top: `calc(7rem + ${idx * 24}px)`,
-            }}
-            onMouseMove={(e) => {
-              if (cardsRef.current[idx]) {
-                handleMouseMove(e, cardsRef.current[idx]!);
-              }
-            }}
-            onMouseLeave={() => {
-              if (cardsRef.current[idx]) {
-                handleMouseLeave(cardsRef.current[idx]!);
-              }
-            }}
-            className="sticky group rounded-3xl bg-[#111114] border border-[#27272a] hover:border-[#4b4b56] transition-shadow duration-500 p-8 sm:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl will-change-transform flex flex-col justify-between"
-          >
-            {/* Top Row: Index and Category */}
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/5 pb-6">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl sm:text-5xl font-editorial-display font-bold text-[#e4a853] tracking-tighter">
-                  {project.index}
-                </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3f3f46]" />
-                <span className="text-xs uppercase tracking-widest text-[#a1a1aa] font-editorial-display">
-                  {project.category}
-                </span>
-              </div>
+        {projectsData.map((project, idx) => {
+          const theme = getProjectTheme(project.id);
+          const ProjectIcon = theme.icon;
 
-              {/* Technologies Badges */}
-              <div className="flex flex-wrap gap-2">
-                {project.technologies.slice(0, 3).map((t) => (
+          return (
+            <div
+              key={project.id}
+              ref={(el) => {
+                cardsRef.current[idx] = el;
+              }}
+              style={{
+                top: `calc(7rem + ${idx * 24}px)`,
+              }}
+              onMouseMove={(e) => {
+                if (cardsRef.current[idx]) {
+                  handleMouseMove(e, cardsRef.current[idx]!);
+                }
+              }}
+              onMouseLeave={() => {
+                if (cardsRef.current[idx]) {
+                  handleMouseLeave(cardsRef.current[idx]!);
+                }
+              }}
+              className={`sticky group rounded-3xl bg-[#111114] border border-[#27272a] ${theme.borderHover} transition-all duration-500 p-8 sm:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl will-change-transform flex flex-col justify-between overflow-hidden cursor-pointer`}
+              onClick={() => setSelectedProject(project)}
+            >
+              {/* Atmospheric background glow */}
+              <div
+                className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${theme.glow} rounded-full blur-3xl pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity duration-500`}
+              />
+
+              {/* Top Row: Index and Category */}
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/5 pb-6 z-10">
+                <div className="flex items-center gap-3">
                   <span
-                    key={t}
-                    className="text-[11px] font-mono px-3 py-1 rounded-full bg-[#18181c] border border-white/5 text-[#a1a1aa]"
+                    style={{ color: theme.accent }}
+                    className="text-3xl sm:text-5xl font-editorial-display font-bold tracking-tighter"
                   >
-                    {t}
+                    {project.index}
                   </span>
-                ))}
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#3f3f46]" />
+                  <span className={`text-xs uppercase tracking-widest font-editorial-display px-3 py-1 rounded-full border ${theme.badgeBg}`}>
+                    {project.category}
+                  </span>
+                </div>
+
+                {/* Technologies Badges */}
+                <div className="flex flex-wrap gap-2">
+                  {project.technologies.slice(0, 3).map((t) => (
+                    <span
+                      key={t}
+                      className="text-[11px] font-mono px-3 py-1 rounded-full bg-[#18181c] border border-white/5 text-[#a1a1aa]"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Middle Section: Title, Subtitle, Description */}
-            <div className="py-8 my-auto">
-              <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-editorial-serif text-white tracking-tight group-hover:text-white transition-colors">
-                {project.title}
-              </h3>
-              <p className="text-sm sm:text-base text-[#e4a853] mt-2 font-light">
-                {project.subtitle}
-              </p>
-              <p className="mt-4 text-base sm:text-lg text-[#8e8e99] max-w-3xl font-light leading-relaxed">
-                {project.description}
-              </p>
-            </div>
+              {/* Middle Section: Title, Subtitle, Description */}
+              <div className="py-8 my-auto z-10">
+                <div className="flex items-center gap-3 mb-2">
+                  <ProjectIcon style={{ color: theme.accent }} className="w-6 h-6" />
+                  <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-editorial-serif text-white tracking-tight group-hover:text-white transition-colors">
+                    {project.title}
+                  </h3>
+                </div>
+                <p style={{ color: theme.accent }} className="text-sm sm:text-base mt-2 font-light">
+                  {project.subtitle}
+                </p>
+                <p className="mt-4 text-base sm:text-lg text-[#8e8e99] max-w-3xl font-light leading-relaxed">
+                  {project.description}
+                </p>
+              </div>
 
-            {/* Bottom Actions Row */}
-            <div className="pt-6 border-t border-white/5 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setSelectedProject(project)}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-black hover:bg-[#e4e4e7] text-xs font-semibold uppercase tracking-wider transition-all duration-200 shadow-md cursor-pointer active:scale-95"
-                >
-                  <SlidersHorizontal className="w-3.5 h-3.5" />
-                  <span>Inspect & Try Project</span>
-                </button>
+              {/* Bottom Actions Row */}
+              <div
+                className="pt-6 border-t border-white/5 flex flex-wrap items-center justify-between gap-4 z-10"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setSelectedProject(project)}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-black hover:bg-[#e4e4e7] text-xs font-semibold uppercase tracking-wider transition-all duration-200 shadow-md cursor-pointer active:scale-95"
+                  >
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    <span>Launch Interactive Playground</span>
+                  </button>
 
-                {project.liveUrl && (
+                  {project.liveUrl && (
+                    <a
+                      href={project.liveUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 px-4 py-3 rounded-full bg-[#18181c] hover:bg-[#222228] border border-[#27272a] text-xs uppercase tracking-wider text-white transition-colors"
+                    >
+                      <span>Live Demo</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+
+                {project.githubUrl && (
                   <a
-                    href={project.liveUrl}
+                    href={project.githubUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 px-4 py-3 rounded-full bg-[#18181c] hover:bg-[#222228] border border-[#27272a] text-xs uppercase tracking-wider text-white transition-colors"
+                    className="flex items-center gap-2 text-xs uppercase tracking-wider text-[#a1a1aa] hover:text-white transition-colors py-2"
                   >
-                    <span>Live Demo</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    <GithubIcon className="w-4 h-4" />
+                    <span>Repository</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
                   </a>
                 )}
               </div>
-
-              {project.githubUrl && (
-                <a
-                  href={project.githubUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-2 text-xs uppercase tracking-wider text-[#a1a1aa] hover:text-white transition-colors py-2"
-                >
-                  <GithubIcon className="w-4 h-4" />
-                  <span>Repository</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </a>
-              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Project Deep-Dive Modal */}
@@ -180,4 +239,3 @@ export const Projects: React.FC = () => {
     </section>
   );
 };
-
