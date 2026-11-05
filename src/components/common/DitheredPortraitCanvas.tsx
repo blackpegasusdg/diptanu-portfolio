@@ -15,7 +15,7 @@ export const DitheredPortraitCanvas: React.FC<DitheredPortraitCanvasProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tapNotice, setTapNotice] = useState(false);
-  const [currentStage, setCurrentStage] = useState('TONAL');
+  const [currentStage, setCurrentStage] = useState('STAGE 1: CRISP TONAL');
 
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
@@ -23,26 +23,27 @@ export const DitheredPortraitCanvas: React.FC<DitheredPortraitCanvasProps> = ({
     const canvas = canvasRef.current;
     const container = containerRef.current;
 
-    // Renderer setup
+    // Renderer setup with high precision and max pixel ratio
     const renderer = new THREE.WebGLRenderer({
       canvas,
       alpha: true,
       antialias: true,
       powerPreference: 'high-performance',
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.5));
     renderer.setSize(container.clientWidth, container.clientHeight);
 
     // Scene & Orthographic Camera for pixel-perfect quad rendering
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-    // Load authentic portrait texture
+    // Load authentic upscaled 2x portrait texture (1712 x 2048)
     const textureLoader = new THREE.TextureLoader();
     const portraitTexture = textureLoader.load('/diptanu-portrait.jpg', () => {
-      portraitTexture.minFilter = THREE.LinearFilter;
+      portraitTexture.generateMipmaps = true;
+      portraitTexture.minFilter = THREE.LinearMipmapLinearFilter;
       portraitTexture.magFilter = THREE.LinearFilter;
-      portraitTexture.generateMipmaps = false;
+      portraitTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
       renderFrame();
     });
 
@@ -67,7 +68,7 @@ export const DitheredPortraitCanvas: React.FC<DitheredPortraitCanvasProps> = ({
 
       varying vec2 vUv;
 
-      // 8x8 Bayer Ordered Dithering Matrix (normalized to 0.0 - 1.0)
+      // 8x8 Bayer Ordered Dithering Matrix
       float getBayer8(vec2 p) {
         int x = int(mod(p.x, 8.0));
         int y = int(mod(p.y, 8.0));
@@ -147,7 +148,7 @@ export const DitheredPortraitCanvas: React.FC<DitheredPortraitCanvasProps> = ({
       }
 
       void main() {
-        // Calculate cover-fit UV coordinates
+        // High-precision cover-fit UV coordinates
         float imgAspect = uImageResolution.x / uImageResolution.y;
         float screenAspect = uResolution.x / uResolution.y;
 
@@ -159,73 +160,76 @@ export const DitheredPortraitCanvas: React.FC<DitheredPortraitCanvasProps> = ({
           offset.y = (1.0 - scale.y) * 0.5;
         } else {
           scale = vec2(imgAspect / screenAspect, 1.0);
-          // Anchor slightly to the right on desktop (0.75) leaving left for text
+          // Anchor towards the right on desktop (0.72) to allow left typography
           // Centered on mobile (0.50)
-          float xAnchor = mix(0.75, 0.5, uIsMobile);
+          float xAnchor = mix(0.72, 0.5, uIsMobile);
           offset.x = (1.0 - scale.x) * xAnchor;
         }
 
         vec2 uv = (vUv - offset) / scale;
 
         // Subtle pointer parallax tilt
-        uv += uMouse * 0.015 * (1.0 - uScrollProgress * 0.6);
+        uv += uMouse * 0.012 * (1.0 - uScrollProgress * 0.6);
 
         if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
           discard;
         }
 
         // Effective progress with tap reveal decay
-        float p = clamp(uScrollProgress * (1.0 - uTapReveal * 0.95), 0.0, 1.0);
+        float p = clamp(uScrollProgress * (1.0 - uTapReveal * 0.98), 0.0, 1.0);
 
-        // Sample texture
+        // High-fidelity texture sampling
         vec4 originalColor = texture2D(uTexture, uv);
 
-        // Perceptual luminance calculation
+        // Crisp perceptual luminance calculation
         float luma = dot(originalColor.rgb, vec3(0.299, 0.587, 0.114));
 
-        // STAGE 1 -> STAGE 2: Natural Tonality into High Contrast Monochrome
-        float contrastLuma = smoothstep(0.03, 0.97, luma);
-        contrastLuma = pow(contrastLuma, 0.92);
+        // STAGE 1: Crystal-Clear, High-Contrast Original Tonal Photograph
+        // Gently enhance blacks and highlights without washing out into grey haze
+        float crispLuma = smoothstep(0.02, 0.98, luma);
 
-        // Subtle analog film grain
-        float grain = (fract(sin(dot(gl_FragCoord.xy + uTime * 6.0, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * 0.05;
-        float noisyLuma = clamp(contrastLuma + grain, 0.0, 1.0);
+        // STAGE 2: High Contrast Deep Monochrome (Scroll 0.25 -> 0.45)
+        float deepMonoLuma = smoothstep(0.05, 0.95, pow(crispLuma, 1.05));
 
-        // STAGE 3 -> STAGE 4: 8x8 Bayer Dithering Matrix
-        float ditherScale = mix(2.0, 3.2, smoothstep(0.3, 0.7, p));
-        vec2 ditherCoord = floor(gl_FragCoord.xy / ditherScale);
+        // STAGE 3 & 4: Authentic 8x8 Bayer Ordered Halftone Dither Matrix (Scroll 0.45 -> 0.85)
+        float ditherPixelSize = mix(2.0, 3.0, smoothstep(0.4, 0.75, p));
+        vec2 ditherCoord = floor(gl_FragCoord.xy / ditherPixelSize);
         float bayerThreshold = getBayer8(ditherCoord);
 
-        float dithered = step(bayerThreshold, noisyLuma);
+        float ditherVal = step(bayerThreshold, deepMonoLuma);
 
-        // Continuous blend between smooth monochrome and pure dithered matrix
-        float ditherBlend = smoothstep(0.30, 0.68, p);
-        float finalTone = mix(noisyLuma, dithered, ditherBlend);
+        // Continuous state mixing
+        vec3 colStage1 = originalColor.rgb;
+        vec3 colStage2 = vec3(deepMonoLuma);
+        vec3 colStage4 = mix(vec3(0.04, 0.04, 0.05), vec3(0.98, 0.98, 0.98), ditherVal);
 
-        // Color grading: deep dark obsidian shadows and crisp luminous print highlights
-        vec3 darkTone = vec3(0.04, 0.04, 0.05);
-        vec3 lightTone = mix(vec3(0.96, 0.96, 0.98), vec3(1.0, 0.92, 0.75), 0.12);
-        vec3 finalColor = mix(darkTone, lightTone, finalTone);
+        // Smooth transition between stages
+        vec3 outputColor;
+        if (p < 0.28) {
+          float t = smoothstep(0.0, 0.28, p);
+          outputColor = mix(colStage1, colStage2, t);
+        } else if (p < 0.75) {
+          float t = smoothstep(0.28, 0.75, p);
+          outputColor = mix(colStage2, colStage4, t);
+        } else {
+          outputColor = colStage4;
+        }
 
-        // STAGE 5: Artistic Dissolve / Particle Erosion into obsidian background
-        float erosionProgress = smoothstep(0.76, 1.0, p);
-        float dissolveMask = step(erosionProgress, noisyLuma * (1.2 - bayerThreshold * 0.4));
+        // STAGE 5: Clean Spatial Dispersion Dissolve (Scroll 0.80 -> 1.0)
+        float erosionProgress = smoothstep(0.78, 1.0, p);
+        float dissolveMask = step(erosionProgress, deepMonoLuma * (1.25 - bayerThreshold * 0.4));
 
-        // Atmospheric vignette and gradient feathering
-        // Left gradient shadow to keep typography on left 100% crisp
-        float leftShadow = smoothstep(0.0, 0.65, vUv.x);
-        // Bottom fade to seamlessly blend into subsequent sections
-        float bottomShadow = smoothstep(0.0, 0.28, vUv.y);
-        // Top subtle shadow
-        float topShadow = smoothstep(1.0, 0.88, vUv.y);
+        // Sharp Edge Vignette:
+        // Left fade only on the far left side where text sits
+        float leftFade = smoothstep(0.0, 0.32, vUv.x);
+        // Bottom fade only at the very bottom
+        float bottomFade = smoothstep(0.0, 0.18, vUv.y);
+        float edgeFade = leftFade * bottomFade;
 
-        float edgeFade = leftShadow * bottomShadow * topShadow;
-        float alpha = (1.0 - erosionProgress * 0.9) * dissolveMask * edgeFade;
+        // Full solid opacity over the portrait, fading only at left and bottom borders
+        float alpha = dissolveMask * edgeFade;
 
-        // Base opacity
-        alpha *= mix(0.85, 0.95, ditherBlend);
-
-        gl_FragColor = vec4(finalColor, alpha);
+        gl_FragColor = vec4(outputColor, alpha);
       }
     `;
 
@@ -233,7 +237,7 @@ export const DitheredPortraitCanvas: React.FC<DitheredPortraitCanvasProps> = ({
       uTexture: { value: portraitTexture },
       uScrollProgress: { value: 0.0 },
       uResolution: { value: new THREE.Vector2(container.clientWidth, container.clientHeight) },
-      uImageResolution: { value: new THREE.Vector2(856, 1024) },
+      uImageResolution: { value: new THREE.Vector2(1712, 2048) },
       uMouse: { value: new THREE.Vector2(0, 0) },
       uTime: { value: 0 },
       uTapReveal: { value: 0.0 },
@@ -268,7 +272,7 @@ export const DitheredPortraitCanvas: React.FC<DitheredPortraitCanvasProps> = ({
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-    // Tap to reveal handler on canvas pointerdown
+    // Tap to reveal handler
     const handlePointerDown = () => {
       uniforms.uTapReveal.value = 1.0;
       setTapNotice(true);
@@ -282,15 +286,15 @@ export const DitheredPortraitCanvas: React.FC<DitheredPortraitCanvasProps> = ({
       trigger: '#home',
       start: 'top top',
       end: 'bottom+=800 top',
-      scrub: 0.6,
+      scrub: 0.5,
       onUpdate: (self) => {
         uniforms.uScrollProgress.value = self.progress;
 
         if (self.progress < 0.25) {
-          setCurrentStage('STAGE 1: TONAL');
-        } else if (self.progress < 0.45) {
-          setCurrentStage('STAGE 2: MONOCHROME');
-        } else if (self.progress < 0.70) {
+          setCurrentStage('STAGE 1: CRISP TONAL');
+        } else if (self.progress < 0.48) {
+          setCurrentStage('STAGE 2: MONOCHROME CONTRAST');
+        } else if (self.progress < 0.72) {
           setCurrentStage('STAGE 3: HALFTONE DITHER');
         } else if (self.progress < 0.88) {
           setCurrentStage('STAGE 4: 8x8 BAYER MATRIX');
@@ -317,15 +321,15 @@ export const DitheredPortraitCanvas: React.FC<DitheredPortraitCanvasProps> = ({
     let clock = new THREE.Clock();
 
     const renderFrame = () => {
-      currentMouseX += (targetMouseX - currentMouseX) * 0.06;
-      currentMouseY += (targetMouseY - currentMouseY) * 0.06;
+      currentMouseX += (targetMouseX - currentMouseX) * 0.08;
+      currentMouseY += (targetMouseY - currentMouseY) * 0.08;
       uniforms.uMouse.value.set(currentMouseX, currentMouseY);
 
       uniforms.uTime.value = clock.getElapsedTime();
 
       // Smooth decay for tap reveal
       if (uniforms.uTapReveal.value > 0.002) {
-        uniforms.uTapReveal.value *= 0.93;
+        uniforms.uTapReveal.value *= 0.92;
       } else {
         uniforms.uTapReveal.value = 0.0;
       }
@@ -369,7 +373,7 @@ export const DitheredPortraitCanvas: React.FC<DitheredPortraitCanvasProps> = ({
         <span className="text-[9px] font-mono text-amber-400/80 tracking-wider mt-0.5">
           22°57'N 88°25'E • NAIHATI
         </span>
-        <span className="text-[9px] font-mono text-white/40 tracking-widest mt-1 uppercase border border-white/10 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm">
+        <span className="text-[9px] font-mono text-white/50 tracking-widest mt-1 uppercase border border-white/10 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md">
           {currentStage}
         </span>
         {tapNotice && (
