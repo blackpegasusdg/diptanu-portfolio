@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { personalData, educationData } from '../../data/portfolioData';
 import { X, Printer, Copy, Check, FileText } from 'lucide-react';
 
@@ -68,7 +68,9 @@ EDUCATION:
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#18181c] border border-white/10 hover:border-white text-xs text-[#d4d4d8] hover:text-white transition-colors"
+              data-cursor="magnetic"
+              data-cursor-label="PRINT"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#18181c] border border-white/10 hover:border-white text-xs text-[#d4d4d8] hover:text-white transition-colors cursor-pointer"
               title="Print or Save as PDF"
             >
               <Printer className="w-3.5 h-3.5" />
@@ -77,7 +79,9 @@ EDUCATION:
 
             <button
               onClick={handleCopyRaw}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#18181c] border border-white/10 hover:border-white text-xs text-[#d4d4d8] hover:text-white transition-colors"
+              data-cursor="magnetic"
+              data-cursor-label="COPY"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#18181c] border border-white/10 hover:border-white text-xs text-[#d4d4d8] hover:text-white transition-colors cursor-pointer"
               title="Copy plain text"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -86,7 +90,9 @@ EDUCATION:
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full bg-[#18181c] border border-white/10 text-[#a1a1aa] hover:text-white transition-colors ml-2"
+              data-cursor="magnetic"
+              data-cursor-label="CLOSE"
+              className="p-1.5 rounded-full bg-[#18181c] border border-white/10 text-[#a1a1aa] hover:text-white transition-colors ml-2 cursor-pointer"
               aria-label="Close resume modal"
             >
               <X className="w-5 h-5" />

@@ -10,6 +10,7 @@ interface MagneticButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEleme
   href?: string;
   target?: string;
   rel?: string;
+  cursorLabel?: string;
 }
 
 export const MagneticButton: React.FC<MagneticButtonProps> = ({
@@ -22,6 +23,7 @@ export const MagneticButton: React.FC<MagneticButtonProps> = ({
   href,
   target,
   rel,
+  cursorLabel,
   ...rest
 }) => {
   const buttonRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
@@ -49,11 +51,11 @@ export const MagneticButton: React.FC<MagneticButtonProps> = ({
   const getVariantStyles = () => {
     switch (variant) {
       case 'primary':
-        return 'bg-white text-[#0a0a0c] hover:bg-[#e4e4e7] border border-white font-medium';
+        return 'bg-white text-[#0a0a0c] hover:bg-[#e4e4e7] border border-white font-medium shadow-[0_4px_20px_rgba(255,255,255,0.15)] hover:shadow-[0_6px_25px_rgba(255,255,255,0.25)]';
       case 'secondary':
-        return 'bg-[#18181c] text-white hover:bg-[#222228] border border-[#27272a]';
+        return 'bg-[#18181c] text-white hover:bg-[#222228] border border-[#27272a] hover:border-white/30';
       case 'outline':
-        return 'bg-transparent text-[#f4f4f5] hover:text-white border border-[#3f3f46] hover:border-white/60';
+        return 'bg-transparent text-[#f4f4f5] hover:text-white border border-[#3f3f46] hover:border-amber-400/60 hover:shadow-[0_0_15px_rgba(228,168,83,0.15)]';
       case 'ghost':
         return 'bg-transparent text-[#a1a1aa] hover:text-white border border-transparent';
       default:
@@ -79,6 +81,8 @@ export const MagneticButton: React.FC<MagneticButtonProps> = ({
         onMouseLeave={handleMouseLeave}
         style={transformStyle}
         className={baseStyles}
+        data-cursor="magnetic"
+        data-cursor-label={cursorLabel}
       >
         <span className="relative z-10 flex items-center gap-2">{children}</span>
       </a>
@@ -93,6 +97,8 @@ export const MagneticButton: React.FC<MagneticButtonProps> = ({
       onMouseLeave={handleMouseLeave}
       style={transformStyle}
       className={baseStyles}
+      data-cursor="magnetic"
+      data-cursor-label={cursorLabel}
       {...rest}
     >
       <span className="relative z-10 flex items-center gap-2">{children}</span>

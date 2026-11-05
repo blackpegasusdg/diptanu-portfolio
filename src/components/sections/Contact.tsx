@@ -61,8 +61,12 @@ export const Contact: React.FC = () => {
               Direct Inquiries
             </h3>
 
-            {/* Email Copy Card */}
-            <div className="p-6 rounded-2xl bg-[#111114] border border-[#222227] hover:border-[#383842] transition-colors">
+            {/* Email Copy Card with dynamic cursor */}
+            <div
+              data-cursor-label="COPY"
+              onClick={copyEmail}
+              className="p-6 rounded-2xl bg-[#111114] border border-[#222227] hover:border-amber-400/50 hover:bg-[#15151a] transition-all cursor-pointer shadow-md"
+            >
               <span className="text-xs text-[#71717a] uppercase tracking-wider block mb-1">
                 Primary Email
               </span>
@@ -71,16 +75,23 @@ export const Contact: React.FC = () => {
                   {personalData.email}
                 </span>
                 <button
-                  onClick={copyEmail}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    copyEmail();
+                  }}
                   className="p-2.5 rounded-xl bg-[#18181c] border border-white/10 text-[#a1a1aa] hover:text-white hover:border-white/30 transition-colors shrink-0 cursor-pointer"
                   title="Copy email to clipboard"
                 >
                   {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                 </button>
               </div>
-              {copied && (
-                <span className="text-[11px] text-emerald-400 mt-2 block font-editorial-display">
+              {copied ? (
+                <span className="text-[11px] text-emerald-400 mt-2 block font-editorial-display animate-fadeIn">
                   ✓ Copied to clipboard
+                </span>
+              ) : (
+                <span className="text-[10px] text-[#71717a] mt-2 block font-mono">
+                  Tap anywhere on card to copy address
                 </span>
               )}
             </div>
@@ -109,7 +120,9 @@ export const Contact: React.FC = () => {
                 href={personalData.socials.github}
                 target="_blank"
                 rel="noreferrer"
-                className="p-4 rounded-xl bg-[#111114] border border-[#222227] hover:border-white/30 text-center flex flex-col items-center justify-center gap-2 group transition-colors"
+                data-cursor="magnetic"
+                data-cursor-label="GITHUB"
+                className="p-4 rounded-xl bg-[#111114] border border-[#222227] hover:border-white/50 text-center flex flex-col items-center justify-center gap-2 group transition-all hover:scale-105 active:scale-95"
               >
                 <GithubIcon className="w-5 h-5 text-[#a1a1aa] group-hover:text-white transition-colors" />
                 <span className="text-xs text-[#d4d4d8] font-medium">GitHub</span>
@@ -119,7 +132,9 @@ export const Contact: React.FC = () => {
                 href={personalData.socials.letterboxd}
                 target="_blank"
                 rel="noreferrer"
-                className="p-4 rounded-xl bg-[#111114] border border-[#222227] hover:border-[#00e054]/40 text-center flex flex-col items-center justify-center gap-2 group transition-colors"
+                data-cursor="magnetic"
+                data-cursor-label="MOVIES"
+                className="p-4 rounded-xl bg-[#111114] border border-[#222227] hover:border-[#00e054]/50 text-center flex flex-col items-center justify-center gap-2 group transition-all hover:scale-105 active:scale-95"
               >
                 <LetterboxdIcon className="w-5 h-5" />
                 <span className="text-xs text-[#d4d4d8] font-medium">Letterboxd</span>
@@ -129,7 +144,9 @@ export const Contact: React.FC = () => {
                 href={personalData.socials.instagram}
                 target="_blank"
                 rel="noreferrer"
-                className="p-4 rounded-xl bg-[#111114] border border-[#222227] hover:border-[#e1306c]/40 text-center flex flex-col items-center justify-center gap-2 group transition-colors"
+                data-cursor="magnetic"
+                data-cursor-label="INSTA"
+                className="p-4 rounded-xl bg-[#111114] border border-[#222227] hover:border-[#e1306c]/50 text-center flex flex-col items-center justify-center gap-2 group transition-all hover:scale-105 active:scale-95"
               >
                 <InstagramIcon className="w-5 h-5 text-[#a1a1aa] group-hover:text-[#e1306c] transition-colors" />
                 <span className="text-xs text-[#d4d4d8] font-medium">Instagram</span>
@@ -140,7 +157,7 @@ export const Contact: React.FC = () => {
 
         {/* Right Column: Working Contact Form */}
         <div className="lg:col-span-7">
-          <div className="p-8 sm:p-12 rounded-3xl bg-[#111114] border border-[#222227]">
+          <div className="p-8 sm:p-12 rounded-3xl bg-[#111114] border border-[#222227] shadow-[0_15px_45px_rgba(0,0,0,0.5)]">
             <h3 className="text-xl sm:text-2xl font-editorial-serif text-white tracking-tight mb-2">
               Send a Direct Message
             </h3>
@@ -177,7 +194,7 @@ export const Contact: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="e.g. Elena Vance"
                     className={`w-full px-4 py-3.5 rounded-xl bg-[#18181c] border ${
-                      errors.name ? 'border-rose-500/60' : 'border-[#27272a] focus:border-white/50'
+                      errors.name ? 'border-rose-500/60' : 'border-[#27272a] focus:border-amber-400/50'
                     } text-white placeholder-[#52525b] text-sm outline-none transition-colors`}
                   />
                   {errors.name && (
@@ -197,7 +214,7 @@ export const Contact: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="name@domain.com"
                     className={`w-full px-4 py-3.5 rounded-xl bg-[#18181c] border ${
-                      errors.email ? 'border-rose-500/60' : 'border-[#27272a] focus:border-white/50'
+                      errors.email ? 'border-rose-500/60' : 'border-[#27272a] focus:border-amber-400/50'
                     } text-white placeholder-[#52525b] text-sm outline-none transition-colors`}
                   />
                   {errors.email && (
@@ -217,7 +234,7 @@ export const Contact: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     placeholder="Describe your inquiry, project scope, or opportunity..."
                     className={`w-full px-4 py-3.5 rounded-xl bg-[#18181c] border ${
-                      errors.message ? 'border-rose-500/60' : 'border-[#27272a] focus:border-white/50'
+                      errors.message ? 'border-rose-500/60' : 'border-[#27272a] focus:border-amber-400/50'
                     } text-white placeholder-[#52525b] text-sm outline-none transition-colors resize-none`}
                   />
                   {errors.message && (
@@ -229,10 +246,12 @@ export const Contact: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-white text-black font-semibold text-xs uppercase tracking-widest hover:bg-[#e4e4e7] transition-all duration-200 active:scale-[0.99] select-none cursor-pointer"
+                  data-cursor="magnetic"
+                  data-cursor-label="SUBMIT"
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-white text-black font-semibold text-xs uppercase tracking-widest hover:bg-[#e4e4e7] transition-all duration-200 active:scale-[0.98] select-none cursor-pointer shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>Send Message</span>
+                  <span>Send Transmission</span>
                 </button>
               </form>
             )}

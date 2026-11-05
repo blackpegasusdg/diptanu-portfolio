@@ -2,7 +2,6 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SectionHeading } from '../common/SectionHeading';
-
 import { Code2, Cpu, ShieldCheck, X, ChevronRight } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -103,7 +102,8 @@ export const About: React.FC = () => {
           {/* Scroll Illuminating Manifesto */}
           <div
             ref={manifestoRef}
-            className="p-8 sm:p-10 rounded-3xl bg-[#111114]/80 border border-[#27272a] backdrop-blur-md"
+            data-cursor-label="PHILOSOPHY"
+            className="p-8 sm:p-10 rounded-3xl bg-[#111114]/80 border border-[#27272a] hover:border-amber-400/40 transition-colors backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
           >
             <span className="text-[11px] uppercase tracking-widest text-[#e4a853] font-editorial-display block mb-4">
               Core Tenet • Scroll to Illuminate
@@ -124,6 +124,8 @@ export const About: React.FC = () => {
             My engineering foundation is built on foundational programming—starting with the low-level{' '}
             <button
               onClick={() => setActiveInsight(insightTokens[0])}
+              data-cursor="magnetic"
+              data-cursor-label="C CODE"
               className="text-white font-medium underline underline-offset-4 decoration-[#e4a853] hover:text-[#e4a853] transition-colors cursor-pointer"
             >
               mechanical sympathy of C
@@ -131,6 +133,8 @@ export const About: React.FC = () => {
             , extending into enterprise-grade Object-Oriented rigor and{' '}
             <button
               onClick={() => setActiveInsight(insightTokens[1])}
+              data-cursor="magnetic"
+              data-cursor-label="JAVA"
               className="text-white font-medium underline underline-offset-4 decoration-[#38bdf8] hover:text-[#38bdf8] transition-colors cursor-pointer"
             >
               concurrency in Java
@@ -142,6 +146,8 @@ export const About: React.FC = () => {
             Whether developing native offline applications like <strong className="text-white font-medium">A10s Walkman</strong> in Kotlin & Jetpack Compose, or modeling topological anomalies in relational networks via{' '}
             <button
               onClick={() => setActiveInsight(insightTokens[2])}
+              data-cursor="magnetic"
+              data-cursor-label="GNN"
               className="text-white font-medium underline underline-offset-4 decoration-[#c084fc] hover:text-[#c084fc] transition-colors cursor-pointer"
             >
               Graph Neural Networks
@@ -153,7 +159,9 @@ export const About: React.FC = () => {
             Outside code, my visual sense and attention to pacing are shaped by cinema. On{' '}
             <button
               onClick={() => setActiveInsight(insightTokens[3])}
-              className="text-[#00e054] underline underline-offset-4 hover:text-white transition-colors cursor-pointer"
+              data-cursor="magnetic"
+              data-cursor-label="FILM"
+              className="text-[#00e054] underline underline-offset-4 hover:text-white transition-colors cursor-pointer font-medium"
             >
               Letterboxd
             </button>
@@ -162,7 +170,7 @@ export const About: React.FC = () => {
 
           {/* Interactive Insight Drawer Popover */}
           {activeInsight && (
-            <div className="p-6 rounded-2xl bg-[#16161c] border border-white/20 animate-in fade-in slide-in-from-top-4 duration-200 shadow-xl">
+            <div className="p-6 rounded-2xl bg-[#16161c] border border-white/20 animate-in fade-in slide-in-from-top-4 duration-200 shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
               <div className="flex items-center justify-between mb-3">
                 <span
                   style={{ color: activeInsight.accent }}
@@ -189,8 +197,11 @@ export const About: React.FC = () => {
           {/* Pillar 1 */}
           <div
             onClick={() => setExpandedPillar(expandedPillar === 'alg' ? null : 'alg')}
-            className={`p-6 sm:p-8 rounded-2xl bg-[#111114] border transition-all duration-300 cursor-pointer ${
-              expandedPillar === 'alg' ? 'border-[#e4a853] bg-[#141418]' : 'border-[#222227] hover:border-[#383842]'
+            data-cursor-label="EXPAND"
+            className={`p-6 sm:p-8 rounded-2xl bg-[#111114] border transition-all duration-300 cursor-pointer active:scale-[0.99] ${
+              expandedPillar === 'alg'
+                ? 'border-[#e4a853] bg-[#141418] shadow-[0_0_25px_rgba(228,168,83,0.15)]'
+                : 'border-[#222227] hover:border-[#383842]'
             }`}
           >
             <div className="flex items-center justify-between">
@@ -220,8 +231,11 @@ export const About: React.FC = () => {
           {/* Pillar 2 */}
           <div
             onClick={() => setExpandedPillar(expandedPillar === 'gnn' ? null : 'gnn')}
-            className={`p-6 sm:p-8 rounded-2xl bg-[#111114] border transition-all duration-300 cursor-pointer ${
-              expandedPillar === 'gnn' ? 'border-sky-400 bg-[#141418]' : 'border-[#222227] hover:border-[#383842]'
+            data-cursor-label="EXPAND"
+            className={`p-6 sm:p-8 rounded-2xl bg-[#111114] border transition-all duration-300 cursor-pointer active:scale-[0.99] ${
+              expandedPillar === 'gnn'
+                ? 'border-sky-400 bg-[#141418] shadow-[0_0_25px_rgba(56,189,248,0.15)]'
+                : 'border-[#222227] hover:border-[#383842]'
             }`}
           >
             <div className="flex items-center justify-between">
@@ -251,8 +265,11 @@ export const About: React.FC = () => {
           {/* Pillar 3 */}
           <div
             onClick={() => setExpandedPillar(expandedPillar === 'sys' ? null : 'sys')}
-            className={`p-6 sm:p-8 rounded-2xl bg-[#111114] border transition-all duration-300 cursor-pointer ${
-              expandedPillar === 'sys' ? 'border-emerald-400 bg-[#141418]' : 'border-[#222227] hover:border-[#383842]'
+            data-cursor-label="EXPAND"
+            className={`p-6 sm:p-8 rounded-2xl bg-[#111114] border transition-all duration-300 cursor-pointer active:scale-[0.99] ${
+              expandedPillar === 'sys'
+                ? 'border-emerald-400 bg-[#141418] shadow-[0_0_25px_rgba(52,211,153,0.15)]'
+                : 'border-[#222227] hover:border-[#383842]'
             }`}
           >
             <div className="flex items-center justify-between">
@@ -283,4 +300,3 @@ export const About: React.FC = () => {
     </section>
   );
 };
-

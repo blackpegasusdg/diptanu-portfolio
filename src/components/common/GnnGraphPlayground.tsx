@@ -95,7 +95,9 @@ export const GnnGraphPlayground: React.FC = () => {
           <button
             onClick={runGnnDetection}
             disabled={isScanning}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-500 hover:bg-purple-600 text-white font-medium text-xs uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer active:scale-95"
+            data-cursor="magnetic"
+            data-cursor-label="DETECT"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-500 hover:bg-purple-600 text-white font-medium text-xs uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer active:scale-95 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
           >
             <Play className={`w-3 h-3 ${isScanning ? 'animate-spin' : ''}`} />
             <span>{isScanning ? 'Running Message Passing...' : 'Run GNN Detection'}</span>
@@ -103,6 +105,8 @@ export const GnnGraphPlayground: React.FC = () => {
 
           <button
             onClick={resetGraph}
+            data-cursor="magnetic"
+            data-cursor-label="RESET"
             className="p-1.5 rounded-full bg-[#18181c] border border-white/10 hover:border-white text-xs text-[#a1a1aa] hover:text-white transition-colors cursor-pointer"
             title="Reset Graph Position"
           >
@@ -112,23 +116,18 @@ export const GnnGraphPlayground: React.FC = () => {
       </div>
 
       {/* Interactive Graph Surface */}
-      <div className="relative w-full h-72 sm:h-80 bg-[#08080c] rounded-xl border border-white/5 overflow-hidden">
+      <div
+        className="relative w-full h-72 sm:h-80 bg-[#08080c] rounded-xl border border-white/5 overflow-hidden cursor-grab active:cursor-grabbing"
+        data-cursor-label="DRAG NODE"
+      >
         <svg
           ref={svgRef}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
-          className="w-full h-full cursor-grab active:cursor-grabbing"
+          className="w-full h-full select-none"
         >
-          {/* Grid pattern */}
-          <defs>
-            <pattern id="graph-grid" width="24" height="24" patternUnits="userSpaceOnUse">
-              <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#graph-grid)" />
-
-          {/* Edges */}
+          {/* Animated or colored Edges */}
           {edges.map((edge, idx) => {
             const fromNode = nodes.find((n) => n.id === edge.from);
             const toNode = nodes.find((n) => n.id === edge.to);
@@ -143,10 +142,10 @@ export const GnnGraphPlayground: React.FC = () => {
                   y1={fromNode.y}
                   x2={toNode.x}
                   y2={toNode.y}
-                  stroke={isAnomalousEdge ? '#f43f5e' : isScanning ? '#c084fc' : '#3f3f46'}
-                  strokeWidth={isAnomalousEdge ? 2.5 : 1.5}
-                  strokeDasharray={isAnomalousEdge ? '4 2' : 'none'}
-                  className="transition-colors duration-300"
+                  stroke={isAnomalousEdge ? '#f43f5e' : '#3f3f46'}
+                  strokeWidth={isAnomalousEdge ? '2.5' : '1.5'}
+                  strokeDasharray={isAnomalousEdge ? '4 3' : undefined}
+                  className={isAnomalousEdge ? 'animate-pulse' : ''}
                 />
                 <text
                   x={(fromNode.x + toNode.x) / 2}
@@ -173,6 +172,7 @@ export const GnnGraphPlayground: React.FC = () => {
                 key={node.id}
                 onPointerDown={() => handlePointerDown(node.id)}
                 className="cursor-pointer"
+                data-cursor-label="DRAG"
               >
                 <circle
                   cx={node.x}
@@ -229,4 +229,3 @@ export const GnnGraphPlayground: React.FC = () => {
     </div>
   );
 };
-

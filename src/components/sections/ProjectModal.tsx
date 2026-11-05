@@ -105,6 +105,8 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
 
           <button
             onClick={handleModalClose}
+            data-cursor="magnetic"
+            data-cursor-label="CLOSE"
             className="p-2 rounded-full bg-[#18181c] border border-white/10 text-[#a1a1aa] hover:text-white hover:border-white/40 transition-colors cursor-pointer"
             aria-label="Close modal"
           >
@@ -148,6 +150,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                     min="10"
                     max="100"
                     value={velocity}
+                    data-cursor-label="TWEAK"
                     onChange={(e) => setVelocity(Number(e.target.value))}
                     className="w-full accent-[#e4a853] bg-[#222228] h-1.5 rounded-lg cursor-pointer"
                   />
@@ -163,6 +166,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                     min="10"
                     max="100"
                     value={skew}
+                    data-cursor-label="TWEAK"
                     onChange={(e) => setSkew(Number(e.target.value))}
                     className="w-full accent-[#e4a853] bg-[#222228] h-1.5 rounded-lg cursor-pointer"
                   />
@@ -178,6 +182,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                     min="10"
                     max="100"
                     value={clustering}
+                    data-cursor-label="TWEAK"
                     onChange={(e) => setClustering(Number(e.target.value))}
                     className="w-full accent-[#e4a853] bg-[#222228] h-1.5 rounded-lg cursor-pointer"
                   />
@@ -203,6 +208,8 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                     href={project.liveUrl}
                     target="_blank"
                     rel="noreferrer"
+                    data-cursor="magnetic"
+                    data-cursor-label="VERCEL"
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-black text-xs font-semibold uppercase tracking-wider hover:bg-[#e4e4e7] transition-colors"
                   >
                     <span>Launch Live Vercel App</span>
@@ -237,6 +244,8 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                         oscRef.current.type = 'sawtooth';
                       }
                     }}
+                    data-cursor="magnetic"
+                    data-cursor-label="MP3"
                     className={`text-xs px-2.5 py-1 rounded-full border cursor-pointer ${audioFormat === 'MP3' ? 'bg-white text-black border-white' : 'bg-[#18181c] text-[#71717a] border-white/10'}`}
                   >
                     128 kbps MP3
@@ -249,6 +258,8 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                         oscRef.current.type = 'sine';
                       }
                     }}
+                    data-cursor="magnetic"
+                    data-cursor-label="FLAC"
                     className={`text-xs px-2.5 py-1 rounded-full border cursor-pointer ${audioFormat === 'FLAC' ? 'bg-emerald-400 text-black border-emerald-400 font-bold' : 'bg-[#18181c] text-[#71717a] border-white/10'}`}
                   >
                     24-Bit / 96kHz FLAC
@@ -278,6 +289,8 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                 <div className="flex items-center gap-3">
                   <button
                     onClick={toggleAudioSynthesis}
+                    data-cursor="magnetic"
+                    data-cursor-label="AUDIO"
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-black font-semibold text-xs uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer active:scale-95"
                   >
                     {isPlaying ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
@@ -335,6 +348,8 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                 href={project.githubUrl}
                 target="_blank"
                 rel="noreferrer"
+                data-cursor="magnetic"
+                data-cursor-label="CODE"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#18181c] hover:bg-white hover:text-black border border-[#27272a] hover:border-white text-xs uppercase tracking-wider text-white transition-all duration-200"
               >
                 <GithubIcon className="w-4 h-4" />
@@ -347,6 +362,8 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
                 href={project.liveUrl}
                 target="_blank"
                 rel="noreferrer"
+                data-cursor="magnetic"
+                data-cursor-label="VERCEL"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black text-xs uppercase tracking-wider font-semibold hover:bg-[#e4e4e7] transition-colors"
               >
                 <span>Live Vercel Demo</span>
@@ -357,6 +374,8 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
 
           <button
             onClick={handleModalClose}
+            data-cursor="magnetic"
+            data-cursor-label="CLOSE"
             className="text-xs uppercase tracking-wider text-[#71717a] hover:text-white transition-colors cursor-pointer"
           >
             Close Window

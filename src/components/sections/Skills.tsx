@@ -1,6 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { SectionHeading } from '../common/SectionHeading';
-import { Terminal, Cpu, Layout, Smartphone, Wrench, Link2 } from 'lucide-react';
+import { Terminal, Cpu, Layout, Smartphone, Wrench, Link2, Sparkles } from 'lucide-react';
 
 interface TechNode {
   name: string;
@@ -13,6 +13,7 @@ interface TechNode {
 export const Skills: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('Programming Languages');
   const [activeNode, setActiveNode] = useState<TechNode | null>(null);
+  const [cardGlares, setCardGlares] = useState<{ [key: string]: { x: number; y: number; opacity: number } }>({});
 
   const categories = [
     { name: 'Programming Languages', icon: Terminal, color: '#e4a853' },
@@ -56,6 +57,34 @@ export const Skills: React.FC = () => {
 
   const currentNodes = allNodes.filter((n) => n.category === selectedCategory);
 
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>, nodeName: string) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    const rotX = ((y - centerY) / centerY) * -6;
+    const rotY = ((x - centerX) / centerX) * 6;
+
+    card.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.02, 1.02, 1.02)`;
+
+    setCardGlares((prev) => ({
+      ...prev,
+      [nodeName]: { x, y, opacity: 1 },
+    }));
+  };
+
+  const handleCardMouseLeave = (e: React.MouseEvent<HTMLDivElement>, nodeName: string) => {
+    const card = e.currentTarget;
+    card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+    setCardGlares((prev) => ({
+      ...prev,
+      [nodeName]: { ...prev[nodeName], opacity: 0 },
+    }));
+  };
+
   return (
     <section id="skills" className="py-24 md:py-36 px-6 md:px-12 max-w-7xl mx-auto border-t border-[#222227]/60">
       <SectionHeading
@@ -74,6 +103,8 @@ export const Skills: React.FC = () => {
           return (
             <button
               key={cat.name}
+              data-cursor="magnetic"
+              data-cursor-label="HUB"
               onClick={() => {
                 setSelectedCategory(cat.name);
                 setActiveNode(null);
@@ -83,21 +114,21 @@ export const Skills: React.FC = () => {
               }}
               className={`p-4 rounded-2xl border transition-all duration-300 text-left flex flex-col justify-between h-28 cursor-pointer select-none active:scale-95 ${
                 isSelected
-                  ? 'bg-[#181822] shadow-[0_0_25px_rgba(255,255,255,0.05)] scale-[1.02]'
+                  ? 'bg-[#181822] shadow-[0_0_25px_rgba(255,255,255,0.08)] scale-[1.02]'
                   : 'bg-[#111114] border-[#222227] hover:border-white/30 opacity-70 hover:opacity-100'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span
                   style={{ color: cat.color }}
-                  className="p-2 rounded-xl bg-[#1c1c24] border border-white/5"
+                  className="p-2 rounded-xl bg-[#1c1c24] border border-white/5 transition-transform group-hover:scale-110"
                 >
                   <Icon className="w-4 h-4" />
                 </span>
                 {isSelected && (
                   <span
                     style={{ backgroundColor: cat.color }}
-                    className="w-1.5 h-1.5 rounded-full animate-ping"
+                    className="w-2 h-2 rounded-full animate-ping"
                   />
                 )}
               </div>
@@ -109,34 +140,49 @@ export const Skills: React.FC = () => {
         })}
       </div>
 
-      {/* Active Hub Technologies Matrix */}
+      {/* Active Hub Technologies Matrix with 3D Tilt & Specular Light */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {currentNodes.map((node) => {
           const isActive = activeNode?.name === node.name;
+          const glare = cardGlares[node.name] || { x: 0, y: 0, opacity: 0 };
 
           return (
             <div
               key={node.name}
+              data-cursor-label="INSPECT"
+              onMouseMove={(e) => handleCardMouseMove(e, node.name)}
+              onMouseLeave={(e) => handleCardMouseLeave(e, node.name)}
               onClick={() => setActiveNode(isActive ? null : node)}
-              className={`p-6 rounded-2xl border transition-all duration-300 flex flex-col justify-between cursor-pointer active:scale-[0.99] ${
+              className={`relative overflow-hidden p-6 rounded-2xl border transition-all duration-200 flex flex-col justify-between cursor-pointer active:scale-[0.98] will-change-transform ${
                 isActive
-                  ? 'bg-[#1a1a24] border-white/40 shadow-xl'
+                  ? 'bg-[#1a1a24] border-amber-400/60 shadow-[0_0_30px_rgba(228,168,83,0.15)]'
                   : 'bg-[#111114] border-[#222227] hover:border-[#3f3f46] hover:bg-[#141418]'
               }`}
             >
-              <div>
+              {/* Dynamic Specular Light Glare */}
+              <div
+                className="absolute inset-0 pointer-events-none transition-opacity duration-300"
+                style={{
+                  opacity: glare.opacity,
+                  background: `radial-gradient(280px circle at ${glare.x}px ${glare.y}px, rgba(255,255,255,0.09), transparent 80%)`,
+                }}
+              />
+
+              <div className="relative z-10">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[10px] uppercase tracking-widest text-[#71717a] font-editorial-display">
                     {node.level}
                   </span>
-                  <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#1c1c24] text-[#a1a1aa] font-mono">
-                    Tap to inspect
+                  <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-mono transition-colors ${
+                    isActive ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' : 'bg-[#1c1c24] text-[#a1a1aa]'
+                  }`}>
+                    {isActive ? 'Active' : 'Tap to inspect'}
                   </span>
                 </div>
 
                 <h3 className="text-xl font-editorial-serif text-white tracking-tight flex items-center justify-between">
                   <span>{node.name}</span>
-                  <Link2 className={`w-3.5 h-3.5 text-[#71717a] transition-colors ${isActive ? 'text-[#e4a853]' : ''}`} />
+                  <Link2 className={`w-3.5 h-3.5 transition-colors ${isActive ? 'text-amber-400' : 'text-[#71717a]'}`} />
                 </h3>
 
                 <p className="mt-2 text-xs sm:text-sm text-[#a1a1aa] font-light leading-relaxed">
@@ -145,15 +191,16 @@ export const Skills: React.FC = () => {
               </div>
 
               {/* Interconnected Project / Tech Relationship Tags */}
-              <div className="mt-6 pt-4 border-t border-white/5">
-                <span className="text-[10px] uppercase tracking-wider text-[#71717a] block mb-2 font-editorial-display">
-                  Connected In Portfolio:
+              <div className="relative z-10 mt-6 pt-4 border-t border-white/5">
+                <span className="text-[10px] uppercase tracking-wider text-[#71717a] block mb-2 font-editorial-display flex items-center gap-1.5">
+                  <Sparkles className="w-2.5 h-2.5 text-amber-400" />
+                  <span>Connected In Portfolio:</span>
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {node.relatedTo.map((rel) => (
                     <span
                       key={rel}
-                      className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#181820] border border-white/10 text-[#e4a853]"
+                      className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#181820] border border-white/10 text-amber-300 hover:border-amber-400/40 transition-colors"
                     >
                       {rel}
                     </span>
@@ -167,4 +214,3 @@ export const Skills: React.FC = () => {
     </section>
   );
 };
-

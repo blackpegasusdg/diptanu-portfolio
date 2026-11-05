@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { personalData } from '../../data/portfolioData';
 import { MagneticButton } from '../common/MagneticButton';
+import { VariableProximityText } from '../common/VariableProximityText';
 import { ArrowDown, ArrowUpRight, FileText, Terminal } from 'lucide-react';
 import { GithubIcon, InstagramIcon, LetterboxdIcon } from '../common/BrandIcons';
 import { Hero3DCanvas } from '../common/Hero3DCanvas';
@@ -40,27 +41,20 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
         duration: 0.6,
         ease: 'power3.out',
       })
-      .from('.hero-word', {
-        y: 80,
-        opacity: 0,
-        stagger: 0.1,
-        duration: 1,
-        ease: 'power4.out',
-      }, '-=0.3')
       .from(subtitleRef.current, {
         opacity: 0,
         y: 25,
         duration: 0.8,
         ease: 'power3.out',
-      }, '-=0.6')
+      }, '-=0.2')
       .from(actionsRef.current, {
         opacity: 0,
         y: 20,
         duration: 0.8,
         ease: 'power3.out',
-      }, '-=0.6')
+      }, '-=0.5')
       .from('.hero-3d-wrapper', {
-        scale: 0.8,
+        scale: 0.85,
         opacity: 0,
         duration: 1.2,
         ease: 'power3.out',
@@ -74,8 +68,8 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
           end: 'bottom top',
           scrub: 1,
         },
-        y: 100,
-        opacity: 0.25,
+        y: 80,
+        opacity: 0.35,
         ease: 'none',
       });
     }, heroRef);
@@ -96,7 +90,10 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
     >
       {/* Top Status Pill */}
       <div ref={badgeRef} className="pt-4 flex flex-wrap items-center justify-between gap-4 z-10">
-        <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#141418] border border-[#27272a] text-xs text-[#a1a1aa] shadow-sm">
+        <div
+          data-cursor-label="ONLINE"
+          className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#141418] border border-[#27272a] text-xs text-[#a1a1aa] shadow-sm cursor-pointer hover:border-amber-400/40 transition-colors"
+        >
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span className="tracking-wide">{personalData.availability}</span>
         </div>
@@ -116,30 +113,38 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
             </p>
           </div>
 
-          {/* Interactive Bouncing Name Typography */}
+          {/* Interactive Variable Proximity Typography */}
           <h1
             ref={headlineRef}
             className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-editorial-serif tracking-tight text-white leading-[0.95] mt-2 mb-6 select-none will-change-transform"
           >
-            <span className="block overflow-hidden">
-              <span className="hero-word inline-block italic hover:text-[#e4a853] hover:-translate-y-2 transition-transform duration-200 cursor-pointer">
-                Diptanu
-              </span>{' '}
-              <span className="hero-word inline-block font-normal hover:text-[#38bdf8] hover:-translate-y-2 transition-transform duration-200 cursor-pointer">
-                Ghosh
-              </span>
-            </span>
+            <div className="block leading-none py-2">
+              <VariableProximityText
+                text="Diptanu"
+                className="font-editorial-serif italic mr-3 sm:mr-5 cursor-pointer text-white"
+                radius={160}
+                maxScale={1.28}
+                highlightColor="#e4a853"
+              />
+              <VariableProximityText
+                text="Ghosh"
+                className="font-editorial-serif font-normal cursor-pointer text-white"
+                radius={160}
+                maxScale={1.28}
+                highlightColor="#38bdf8"
+              />
+            </div>
           </h1>
 
-          {/* Subtitle & Focus */}
+          {/* Subtitle & Focus with Proximity Text */}
           <div className="overflow-hidden">
             <p
               ref={subtitleRef}
               className="max-w-2xl text-base sm:text-lg md:text-xl text-[#a1a1aa] font-light leading-relaxed"
             >
-              Passionate about <span className="text-white font-normal">Software Systems</span>,{' '}
-              <span className="text-white font-normal">Graph Neural Networks</span>, and{' '}
-              <span className="text-white font-normal">Applied AI</span>. Engineering real-world solutions grounded in data structures, algorithms, and thoughtful software design.
+              Passionate about <span className="text-white font-normal underline decoration-amber-400/40 underline-offset-4">Software Systems</span>,{' '}
+              <span className="text-white font-normal underline decoration-sky-400/40 underline-offset-4">Graph Neural Networks</span>, and{' '}
+              <span className="text-white font-normal underline decoration-emerald-400/40 underline-offset-4">Applied AI</span>. Engineering real-world solutions grounded in data structures, algorithms, and thoughtful software design.
             </p>
           </div>
 
@@ -148,10 +153,12 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
             {interactiveChips.map((chip) => (
               <button
                 key={chip.label}
+                data-cursor="magnetic"
+                data-cursor-label="TECH"
                 onClick={() => setActiveChip(activeChip === chip.label ? null : chip.label)}
                 className={`text-xs px-3.5 py-1.5 rounded-full border transition-all duration-200 cursor-pointer active:scale-95 ${
                   activeChip === chip.label
-                    ? 'bg-[#e4a853] text-black border-[#e4a853] font-semibold'
+                    ? 'bg-[#e4a853] text-black border-[#e4a853] font-semibold shadow-[0_0_15px_rgba(228,168,83,0.3)]'
                     : 'bg-[#121216] text-[#a1a1aa] border-white/10 hover:border-white/40 hover:text-white'
                 }`}
               >
@@ -163,13 +170,14 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
             ))}
           </div>
 
-          {/* Interactive CTA Buttons */}
+          {/* Interactive Magnetic CTA Buttons */}
           <div
             ref={actionsRef}
             className="mt-8 flex flex-wrap items-center gap-4 pt-2"
           >
             <MagneticButton
               variant="primary"
+              cursorLabel="EXPLORE"
               onClick={() => scrollTo('projects')}
             >
               <span>Explore My Work</span>
@@ -178,6 +186,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
 
             <MagneticButton
               variant="secondary"
+              cursorLabel="TALK"
               onClick={() => scrollTo('contact')}
             >
               <span>Get In Touch</span>
@@ -186,16 +195,20 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
 
             <MagneticButton
               variant="outline"
+              cursorLabel="RESUME"
               onClick={onOpenResumeModal}
             >
-              <FileText className="w-4 h-4" />
+              <FileText className="w-4 h-4 text-amber-400" />
               <span>Download Resume</span>
             </MagneticButton>
           </div>
         </div>
 
-        {/* Right Column: Interactive 3D Three.js Polytope */}
-        <div className="hero-3d-wrapper lg:col-span-5 flex flex-col items-center justify-center">
+        {/* Right Column: Interactive 3D Three.js Polytope with DRAG label */}
+        <div
+          className="hero-3d-wrapper lg:col-span-5 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
+          data-cursor-label="DRAG 3D"
+        >
           <Hero3DCanvas />
         </div>
       </div>
@@ -210,7 +223,9 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
             href={personalData.socials.github}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-[#a1a1aa] hover:text-white transition-colors"
+            data-cursor="magnetic"
+            data-cursor-label="GITHUB"
+            className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-[#a1a1aa] hover:text-white transition-colors py-1"
           >
             <GithubIcon className="w-3.5 h-3.5" />
             <span>GitHub</span>
@@ -219,7 +234,9 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
             href={personalData.socials.letterboxd}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-[#a1a1aa] hover:text-[#00e054] transition-colors"
+            data-cursor="magnetic"
+            data-cursor-label="MOVIES"
+            className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-[#a1a1aa] hover:text-[#00e054] transition-colors py-1"
           >
             <LetterboxdIcon className="w-3.5 h-3.5" />
             <span>Letterboxd</span>
@@ -228,7 +245,9 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
             href={personalData.socials.instagram}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-[#a1a1aa] hover:text-[#e1306c] transition-colors"
+            data-cursor="magnetic"
+            data-cursor-label="INSTA"
+            className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-[#a1a1aa] hover:text-[#e1306c] transition-colors py-1"
           >
             <InstagramIcon className="w-3.5 h-3.5" />
             <span>Instagram</span>
@@ -238,15 +257,16 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
         {/* Animated Scroll Indicator */}
         <button
           onClick={() => scrollTo('about')}
+          data-cursor="magnetic"
+          data-cursor-label="DOWN"
           className="group flex items-center gap-2 text-xs uppercase tracking-widest text-[#71717a] hover:text-white transition-colors cursor-pointer"
         >
           <span>Scroll</span>
-          <div className="w-5 h-8 rounded-full border border-[#3f3f46] flex items-start justify-center p-1">
-            <span className="w-1 h-2 rounded-full bg-white animate-bounce" />
+          <div className="w-5 h-8 rounded-full border border-[#3f3f46] flex items-start justify-center p-1 group-hover:border-amber-400 transition-colors">
+            <span className="w-1 h-2 rounded-full bg-white group-hover:bg-amber-400 transition-colors animate-bounce" />
           </div>
         </button>
       </div>
     </section>
   );
 };
-

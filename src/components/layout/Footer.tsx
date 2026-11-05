@@ -44,7 +44,7 @@ export const Footer: React.FC = () => {
             </div>
             <div className="mt-8 flex items-center gap-3 text-xs text-[#71717a]">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>India (IST): <strong className="text-[#f4f4f5] font-mono">{time || '06:45 PM'}</strong></span>
+              <span>India (IST): <strong className="text-[#f4f4f5] font-mono">{time || '07:30 PM'}</strong></span>
             </div>
           </div>
 
@@ -55,19 +55,19 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <a href="#about" className="hover:text-white transition-colors">About Background</a>
+                <a href="#about" data-cursor="magnetic" data-cursor-label="ABOUT" className="hover:text-white transition-colors">About Background</a>
               </li>
               <li>
-                <a href="#skills" className="hover:text-white transition-colors">Technical Stack</a>
+                <a href="#skills" data-cursor="magnetic" data-cursor-label="SKILLS" className="hover:text-white transition-colors">Technical Stack</a>
               </li>
               <li>
-                <a href="#projects" className="hover:text-white transition-colors">Featured Projects</a>
+                <a href="#projects" data-cursor="magnetic" data-cursor-label="WORKS" className="hover:text-white transition-colors">Featured Projects</a>
               </li>
               <li>
-                <a href="#learning" className="hover:text-white transition-colors">Currently Exploring</a>
+                <a href="#learning" data-cursor="magnetic" data-cursor-label="STUDY" className="hover:text-white transition-colors">Currently Exploring</a>
               </li>
               <li>
-                <a href="#contact" className="hover:text-white transition-colors">Get In Touch</a>
+                <a href="#contact" data-cursor="magnetic" data-cursor-label="TALK" className="hover:text-white transition-colors">Get In Touch</a>
               </li>
             </ul>
           </div>
@@ -82,7 +82,9 @@ export const Footer: React.FC = () => {
                 href={personalData.socials.github}
                 target="_blank"
                 rel="noreferrer"
-                className="group flex items-center justify-between p-3 rounded-lg bg-[#111114] border border-[#222227] hover:border-white/40 transition-colors text-sm text-[#f4f4f5]"
+                data-cursor="magnetic"
+                data-cursor-label="GITHUB"
+                className="group flex items-center justify-between p-3 rounded-lg bg-[#111114] border border-[#222227] hover:border-white/50 transition-all hover:scale-[1.01] text-sm text-[#f4f4f5]"
               >
                 <span className="flex items-center gap-3">
                   <GithubIcon className="w-4 h-4 text-[#a1a1aa] group-hover:text-white transition-colors" />
@@ -95,7 +97,9 @@ export const Footer: React.FC = () => {
                 href={personalData.socials.letterboxd}
                 target="_blank"
                 rel="noreferrer"
-                className="group flex items-center justify-between p-3 rounded-lg bg-[#111114] border border-[#222227] hover:border-[#00e054]/50 transition-colors text-sm text-[#f4f4f5]"
+                data-cursor="magnetic"
+                data-cursor-label="MOVIES"
+                className="group flex items-center justify-between p-3 rounded-lg bg-[#111114] border border-[#222227] hover:border-[#00e054]/50 transition-all hover:scale-[1.01] text-sm text-[#f4f4f5]"
               >
                 <span className="flex items-center gap-3">
                   <LetterboxdIcon className="w-4 h-4" />
@@ -108,7 +112,9 @@ export const Footer: React.FC = () => {
                 href={personalData.socials.instagram}
                 target="_blank"
                 rel="noreferrer"
-                className="group flex items-center justify-between p-3 rounded-lg bg-[#111114] border border-[#222227] hover:border-[#e1306c]/50 transition-colors text-sm text-[#f4f4f5]"
+                data-cursor="magnetic"
+                data-cursor-label="INSTA"
+                className="group flex items-center justify-between p-3 rounded-lg bg-[#111114] border border-[#222227] hover:border-[#e1306c]/50 transition-all hover:scale-[1.01] text-sm text-[#f4f4f5]"
               >
                 <span className="flex items-center gap-3">
                   <InstagramIcon className="w-4 h-4 text-[#a1a1aa] group-hover:text-[#e1306c] transition-colors" />
@@ -125,7 +131,9 @@ export const Footer: React.FC = () => {
           <p>© {new Date().getFullYear()} Diptanu Ghosh. Built with React, TypeScript & GSAP.</p>
           <button
             onClick={scrollToTop}
-            className="flex items-center gap-2 text-white hover:text-[#e4a853] transition-colors group cursor-pointer"
+            data-cursor="magnetic"
+            data-cursor-label="TOP"
+            className="flex items-center gap-2 text-white hover:text-amber-400 transition-colors group cursor-pointer"
           >
             <span>Back to top</span>
             <ArrowUp className="w-4 h-4 group-hover:-translate-y-1 transition-transform" />

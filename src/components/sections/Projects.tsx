@@ -14,6 +14,7 @@ export const Projects: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const [spotlights, setSpotlights] = useState<{ [key: number]: { x: number; y: number; opacity: number } }>({});
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -42,22 +43,31 @@ export const Projects: React.FC = () => {
     return () => ctx.revert();
   }, []);
 
-  // 3D Card tilt handler
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, cardElement: HTMLDivElement) => {
+  // 3D Card tilt and specular reflection handler
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, cardIndex: number, cardElement: HTMLDivElement) => {
     const rect = cardElement.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    const rotateX = ((y - centerY) / centerY) * -4;
-    const rotateY = ((x - centerX) / centerX) * 4;
+    const rotateX = ((y - centerY) / centerY) * -5;
+    const rotateY = ((x - centerX) / centerX) * 5;
 
-    cardElement.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.01, 1.01, 1.01)`;
+    cardElement.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.015, 1.015, 1.015)`;
+
+    setSpotlights((prev) => ({
+      ...prev,
+      [cardIndex]: { x, y, opacity: 1 },
+    }));
   };
 
-  const handleMouseLeave = (cardElement: HTMLDivElement) => {
+  const handleMouseLeave = (cardIndex: number, cardElement: HTMLDivElement) => {
     cardElement.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+    setSpotlights((prev) => ({
+      ...prev,
+      [cardIndex]: { ...prev[cardIndex], opacity: 0 },
+    }));
   };
 
   const getProjectTheme = (id: string) => {
@@ -68,7 +78,8 @@ export const Projects: React.FC = () => {
           accent: '#38bdf8',
           borderHover: 'hover:border-[#38bdf8]/60',
           badgeBg: 'bg-sky-500/10 text-sky-300 border-sky-500/20',
-          glow: 'from-sky-500/5 via-transparent to-transparent',
+          glow: 'from-sky-500/10 via-transparent to-transparent',
+          sheen: 'rgba(56, 189, 248, 0.15)',
         };
       case 'gnn-fraud':
         return {
@@ -76,7 +87,8 @@ export const Projects: React.FC = () => {
           accent: '#c084fc',
           borderHover: 'hover:border-[#c084fc]/60',
           badgeBg: 'bg-purple-500/10 text-purple-300 border-purple-500/20',
-          glow: 'from-purple-500/5 via-transparent to-transparent',
+          glow: 'from-purple-500/10 via-transparent to-transparent',
+          sheen: 'rgba(192, 132, 252, 0.15)',
         };
       case 'a10s-walkman':
         return {
@@ -84,7 +96,8 @@ export const Projects: React.FC = () => {
           accent: '#e4a853',
           borderHover: 'hover:border-[#e4a853]/60',
           badgeBg: 'bg-amber-500/10 text-amber-300 border-amber-500/20',
-          glow: 'from-amber-500/5 via-transparent to-transparent',
+          glow: 'from-amber-500/10 via-transparent to-transparent',
+          sheen: 'rgba(228, 168, 83, 0.15)',
         };
       default:
         return {
@@ -93,6 +106,7 @@ export const Projects: React.FC = () => {
           borderHover: 'hover:border-white/40',
           badgeBg: 'bg-white/10 text-white border-white/20',
           glow: 'from-white/5 via-transparent to-transparent',
+          sheen: 'rgba(255, 255, 255, 0.1)',
         };
     }
   };
@@ -114,6 +128,7 @@ export const Projects: React.FC = () => {
         {projectsData.map((project, idx) => {
           const theme = getProjectTheme(project.id);
           const ProjectIcon = theme.icon;
+          const cardSpotlight = spotlights[idx] || { x: 0, y: 0, opacity: 0 };
 
           return (
             <div
@@ -124,22 +139,32 @@ export const Projects: React.FC = () => {
               style={{
                 top: `calc(7rem + ${idx * 24}px)`,
               }}
+              data-cursor-label="VIEW PROJECT"
               onMouseMove={(e) => {
                 if (cardsRef.current[idx]) {
-                  handleMouseMove(e, cardsRef.current[idx]!);
+                  handleMouseMove(e, idx, cardsRef.current[idx]!);
                 }
               }}
               onMouseLeave={() => {
                 if (cardsRef.current[idx]) {
-                  handleMouseLeave(cardsRef.current[idx]!);
+                  handleMouseLeave(idx, cardsRef.current[idx]!);
                 }
               }}
-              className={`sticky group rounded-3xl bg-[#111114] border border-[#27272a] ${theme.borderHover} transition-all duration-500 p-8 sm:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl will-change-transform flex flex-col justify-between overflow-hidden cursor-pointer`}
+              className={`sticky group rounded-3xl bg-[#111114] border border-[#27272a] ${theme.borderHover} transition-all duration-300 p-8 sm:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl will-change-transform flex flex-col justify-between overflow-hidden cursor-pointer`}
               onClick={() => setSelectedProject(project)}
             >
+              {/* Dynamic Specular Light Glare */}
+              <div
+                className="absolute inset-0 pointer-events-none transition-opacity duration-300"
+                style={{
+                  opacity: cardSpotlight.opacity,
+                  background: `radial-gradient(400px circle at ${cardSpotlight.x}px ${cardSpotlight.y}px, ${theme.sheen}, transparent 80%)`,
+                }}
+              />
+
               {/* Atmospheric background glow */}
               <div
-                className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${theme.glow} rounded-full blur-3xl pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity duration-500`}
+                className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${theme.glow} rounded-full blur-3xl pointer-events-none opacity-40 group-hover:opacity-100 transition-opacity duration-500`}
               />
 
               {/* Top Row: Index and Category */}
@@ -162,7 +187,7 @@ export const Projects: React.FC = () => {
                   {project.technologies.slice(0, 3).map((t) => (
                     <span
                       key={t}
-                      className="text-[11px] font-mono px-3 py-1 rounded-full bg-[#18181c] border border-white/5 text-[#a1a1aa]"
+                      className="text-[11px] font-mono px-3 py-1 rounded-full bg-[#18181c] border border-white/5 text-[#a1a1aa] group-hover:border-white/20 transition-colors"
                     >
                       {t}
                     </span>
@@ -173,8 +198,8 @@ export const Projects: React.FC = () => {
               {/* Middle Section: Title, Subtitle, Description */}
               <div className="py-8 my-auto z-10">
                 <div className="flex items-center gap-3 mb-2">
-                  <ProjectIcon style={{ color: theme.accent }} className="w-6 h-6" />
-                  <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-editorial-serif text-white tracking-tight group-hover:text-white transition-colors">
+                  <ProjectIcon style={{ color: theme.accent }} className="w-6 h-6 transform group-hover:scale-110 transition-transform duration-300" />
+                  <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-editorial-serif text-white tracking-tight group-hover:text-amber-300 transition-colors">
                     {project.title}
                   </h3>
                 </div>
@@ -194,6 +219,8 @@ export const Projects: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setSelectedProject(project)}
+                    data-cursor="magnetic"
+                    data-cursor-label="PLAY"
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-black hover:bg-[#e4e4e7] text-xs font-semibold uppercase tracking-wider transition-all duration-200 shadow-md cursor-pointer active:scale-95"
                   >
                     <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -205,6 +232,8 @@ export const Projects: React.FC = () => {
                       href={project.liveUrl}
                       target="_blank"
                       rel="noreferrer"
+                      data-cursor="magnetic"
+                      data-cursor-label="VISIT"
                       className="inline-flex items-center gap-1.5 px-4 py-3 rounded-full bg-[#18181c] hover:bg-[#222228] border border-[#27272a] text-xs uppercase tracking-wider text-white transition-colors"
                     >
                       <span>Live Demo</span>
@@ -218,6 +247,8 @@ export const Projects: React.FC = () => {
                     href={project.githubUrl}
                     target="_blank"
                     rel="noreferrer"
+                    data-cursor="magnetic"
+                    data-cursor-label="CODE"
                     className="flex items-center gap-2 text-xs uppercase tracking-wider text-[#a1a1aa] hover:text-white transition-colors py-2"
                   >
                     <GithubIcon className="w-4 h-4" />
