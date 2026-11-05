@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -39,10 +39,13 @@ export const DitheredPortraitCanvas: React.FC<DitheredPortraitCanvasProps> = ({
 
     // Load authentic portrait texture
     const textureLoader = new THREE.TextureLoader();
-    const portraitTexture = textureLoader.load('/diptanu-portrait.jpg', () => {
+    const portraitTexture = textureLoader.load('/diptanu-portrait.jpg', (tex) => {
       portraitTexture.minFilter = THREE.LinearFilter;
       portraitTexture.magFilter = THREE.LinearFilter;
       portraitTexture.generateMipmaps = false;
+      if (tex.image && tex.image.width && tex.image.height) {
+        uniforms.uImageResolution.value.set(tex.image.width, tex.image.height);
+      }
       renderFrame();
     });
 
@@ -233,7 +236,7 @@ export const DitheredPortraitCanvas: React.FC<DitheredPortraitCanvasProps> = ({
       uTexture: { value: portraitTexture },
       uScrollProgress: { value: 0.0 },
       uResolution: { value: new THREE.Vector2(container.clientWidth, container.clientHeight) },
-      uImageResolution: { value: new THREE.Vector2(856, 1024) },
+      uImageResolution: { value: new THREE.Vector2(855, 1024) },
       uMouse: { value: new THREE.Vector2(0, 0) },
       uTime: { value: 0 },
       uTapReveal: { value: 0.0 },
