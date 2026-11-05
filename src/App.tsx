@@ -15,6 +15,7 @@ import { Education } from './components/sections/Education';
 import { Contact } from './components/sections/Contact';
 import { ResumeModal } from './components/common/ResumeModal';
 import { KineticMarquee } from './components/common/KineticMarquee';
+import { DitheredPortraitCanvas } from './components/common/DitheredPortraitCanvas';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -118,6 +119,9 @@ export const App: React.FC = () => {
 
       {/* Editorial subtle grid background */}
       <div className="fixed inset-0 pointer-events-none bg-editorial-grid z-0 opacity-40" />
+
+      {/* Scroll-Driven Black & White Dithered Portrait Background */}
+      <DitheredPortraitCanvas />
 
       {/* Intro Preloader */}
       {loading && <Preloader onComplete={() => setLoading(false)} />}

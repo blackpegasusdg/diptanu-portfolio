@@ -4,7 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { personalData } from '../../data/portfolioData';
 import { MagneticButton } from '../common/MagneticButton';
 import { VariableProximityText } from '../common/VariableProximityText';
-import { ArrowDown, ArrowUpRight, FileText, Terminal } from 'lucide-react';
+import { ArrowDown, ArrowUpRight, FileText, Terminal, Sparkles } from 'lucide-react';
 import { GithubIcon, InstagramIcon, LetterboxdIcon } from '../common/BrandIcons';
 import { Hero3DCanvas } from '../common/Hero3DCanvas';
 
@@ -88,24 +88,37 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
       ref={heroRef}
       className="relative min-h-screen flex flex-col justify-between pt-32 pb-12 px-6 md:px-12 max-w-7xl mx-auto overflow-hidden"
     >
-      {/* Top Status Pill */}
+      {/* Top Status & Editorial Mission Stamp */}
       <div ref={badgeRef} className="pt-4 flex flex-wrap items-center justify-between gap-4 z-10">
-        <div
-          data-cursor-label="ONLINE"
-          className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#141418] border border-[#27272a] text-xs text-[#a1a1aa] shadow-sm cursor-pointer hover:border-amber-400/40 transition-colors"
-        >
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="tracking-wide">{personalData.availability}</span>
+        <div className="flex items-center gap-3">
+          <div
+            data-cursor-label="ONLINE"
+            className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#141418]/90 border border-[#27272a] text-xs text-[#a1a1aa] shadow-sm cursor-pointer hover:border-amber-400/40 transition-colors backdrop-blur-sm"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="tracking-wide">{personalData.availability}</span>
+          </div>
+
+          <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-mono text-white/50 tracking-wider uppercase">
+            <Sparkles className="w-2.5 h-2.5 text-amber-400" />
+            <span>BEYOND THE INTERFACE</span>
+          </div>
         </div>
 
-        <span className="text-xs uppercase tracking-widest text-[#71717a] font-editorial-display">
-          {personalData.locationDetailed}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs uppercase tracking-widest text-[#71717a] font-editorial-display hidden md:inline">
+            BUILDING THINGS THAT MATTER
+          </span>
+          <span className="text-xs uppercase tracking-widest text-[#a1a1aa] font-editorial-display">
+            {personalData.locationDetailed}
+          </span>
+        </div>
       </div>
 
       {/* Main Hero Split Grid: Typography & 3D Interactive Polytope */}
       <div className="my-auto py-8 md:py-12 z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-        <div className="lg:col-span-7">
+        {/* Left Column with soft shadow scrim for perfect contrast over portrait */}
+        <div className="lg:col-span-7 bg-gradient-to-r from-[#070709]/85 via-[#070709]/65 to-transparent p-4 sm:p-6 md:p-8 rounded-3xl backdrop-blur-[2px]">
           <div className="overflow-hidden mb-2">
             <p className="text-xs sm:text-sm uppercase tracking-[0.3em] text-[#a1a1aa] font-editorial-display flex items-center gap-2">
               <Terminal className="w-4 h-4 text-[#e4a853]" />
@@ -140,7 +153,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
           <div className="overflow-hidden">
             <p
               ref={subtitleRef}
-              className="max-w-2xl text-base sm:text-lg md:text-xl text-[#a1a1aa] font-light leading-relaxed"
+              className="max-w-2xl text-base sm:text-lg md:text-xl text-[#d4d4d8] font-light leading-relaxed"
             >
               Passionate about <span className="text-white font-normal underline decoration-amber-400/40 underline-offset-4">Software Systems</span>,{' '}
               <span className="text-white font-normal underline decoration-sky-400/40 underline-offset-4">Graph Neural Networks</span>, and{' '}
@@ -159,7 +172,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
                 className={`text-xs px-3.5 py-1.5 rounded-full border transition-all duration-200 cursor-pointer active:scale-95 ${
                   activeChip === chip.label
                     ? 'bg-[#e4a853] text-black border-[#e4a853] font-semibold shadow-[0_0_15px_rgba(228,168,83,0.3)]'
-                    : 'bg-[#121216] text-[#a1a1aa] border-white/10 hover:border-white/40 hover:text-white'
+                    : 'bg-[#121216]/90 text-[#a1a1aa] border-white/10 hover:border-white/40 hover:text-white backdrop-blur-sm'
                 }`}
               >
                 <span>{chip.label}</span>
@@ -204,7 +217,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
           </div>
         </div>
 
-        {/* Right Column: Interactive 3D Three.js Polytope with DRAG label */}
+        {/* Right Column: Interactive 3D Three.js Polytope alongside Dithered Background */}
         <div
           className="hero-3d-wrapper lg:col-span-5 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
           data-cursor-label="DRAG 3D"
@@ -214,7 +227,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
       </div>
 
       {/* Bottom Bar: Social Links & Scroll Indicator */}
-      <div className="flex items-end justify-between border-t border-[#222227] pt-6 z-10">
+      <div className="flex items-end justify-between border-t border-[#222227] pt-6 z-10 bg-[#070709]/40 backdrop-blur-sm px-2 rounded-xl">
         <div className="flex items-center gap-4 text-sm">
           <span className="text-xs uppercase tracking-widest text-[#71717a] hidden sm:inline-block font-editorial-display mr-2">
             Profiles:
@@ -254,18 +267,23 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
           </a>
         </div>
 
-        {/* Animated Scroll Indicator */}
-        <button
-          onClick={() => scrollTo('about')}
-          data-cursor="magnetic"
-          data-cursor-label="DOWN"
-          className="group flex items-center gap-2 text-xs uppercase tracking-widest text-[#71717a] hover:text-white transition-colors cursor-pointer"
-        >
-          <span>Scroll</span>
-          <div className="w-5 h-8 rounded-full border border-[#3f3f46] flex items-start justify-center p-1 group-hover:border-amber-400 transition-colors">
-            <span className="w-1 h-2 rounded-full bg-white group-hover:bg-amber-400 transition-colors animate-bounce" />
-          </div>
-        </button>
+        {/* Animated Scroll Indicator & Stage Guidance */}
+        <div className="flex items-center gap-4">
+          <span className="text-[10px] font-mono tracking-widest uppercase text-white/40 hidden md:inline">
+            SCROLL TO DITHER
+          </span>
+          <button
+            onClick={() => scrollTo('about')}
+            data-cursor="magnetic"
+            data-cursor-label="DOWN"
+            className="group flex items-center gap-2 text-xs uppercase tracking-widest text-[#71717a] hover:text-white transition-colors cursor-pointer"
+          >
+            <span>Scroll</span>
+            <div className="w-5 h-8 rounded-full border border-[#3f3f46] flex items-start justify-center p-1 group-hover:border-amber-400 transition-colors">
+              <span className="w-1 h-2 rounded-full bg-white group-hover:bg-amber-400 transition-colors animate-bounce" />
+            </div>
+          </button>
+        </div>
       </div>
     </section>
   );
