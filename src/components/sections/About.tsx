@@ -2,6 +2,9 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SectionHeading } from '../common/SectionHeading';
+import { ScrollGhostText } from '../common/ScrollGhostText';
+import { personalData } from '../../data/portfolioData';
+import { isCoarsePointer, prefersReducedMotion } from '../../lib/motion';
 import { Code2, Cpu, ShieldCheck, X, ChevronRight } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -17,6 +20,9 @@ interface InsightToken {
 export const About: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const manifestoRef = useRef<HTMLDivElement>(null);
+  const pillarsRef = useRef<HTMLDivElement>(null);
+  const portraitRef = useRef<HTMLDivElement>(null);
+  const colourRef = useRef<HTMLDivElement>(null);
   const [activeInsight, setActiveInsight] = useState<InsightToken | null>(null);
   const [expandedPillar, setExpandedPillar] = useState<string | null>(null);
 
@@ -52,7 +58,7 @@ export const About: React.FC = () => {
   ];
 
   useEffect(() => {
-    if (!sectionRef.current || !manifestoRef.current) return;
+    if (!sectionRef.current || !manifestoRef.current || prefersReducedMotion()) return;
 
     const ctx = gsap.context(() => {
       // Scrubbed word illumination on scroll
@@ -75,10 +81,61 @@ export const About: React.FC = () => {
           }
         );
       }
+
+      // Layered portrait: the frame unmasks from the bottom while the photo
+      // inside travels at a different speed (depth between frame and image).
+      if (portraitRef.current) {
+        gsap.fromTo(
+          portraitRef.current,
+          { clipPath: 'inset(100% 0% 0% 0% round 24px)' },
+          {
+            clipPath: 'inset(0% 0% 0% 0% round 24px)',
+            ease: 'none',
+            scrollTrigger: { trigger: portraitRef.current, start: 'top 92%', end: 'top 45%', scrub: true },
+          }
+        );
+        gsap.fromTo(
+          portraitRef.current.querySelectorAll('.about-portrait-layer'),
+          { yPercent: -7 },
+          {
+            yPercent: 7,
+            ease: 'none',
+            scrollTrigger: { trigger: portraitRef.current, start: 'top bottom', end: 'bottom top', scrub: true },
+          }
+        );
+      }
+
+      // Pillars slide in from the side, one after another, as you read.
+      gsap.from('.about-pillar', {
+        x: 70,
+        opacity: 0,
+        stagger: 0.18,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: pillarsRef.current,
+          start: 'top 85%',
+          end: 'top 25%',
+          scrub: 0.8,
+        },
+      });
     }, sectionRef);
 
     return () => ctx.revert();
   }, []);
+
+  // Flashlight colour reveal on the portrait (pointer / tap, no React state)
+  const moveFlashlight = (e: React.PointerEvent<HTMLDivElement>) => {
+    const frame = portraitRef.current;
+    const layer = colourRef.current;
+    if (!frame || !layer) return;
+    const r = layer.getBoundingClientRect();
+    layer.style.setProperty('--mx', `${e.clientX - r.left}px`);
+    layer.style.setProperty('--my', `${e.clientY - r.top}px`);
+    layer.style.opacity = '1';
+  };
+  const hideFlashlight = () => {
+    if (colourRef.current) colourRef.current.style.opacity = '0';
+  };
 
   const manifestoText =
     "Software is not merely about stitching libraries together. It is about architectural discipline, memory efficiency, and mathematical truth. Computing is most rewarding when designed with structural integrity from the fundamental layer upward.";
@@ -87,8 +144,9 @@ export const About: React.FC = () => {
     <section
       id="about"
       ref={sectionRef}
-      className="py-24 md:py-36 px-6 md:px-12 max-w-7xl mx-auto border-t border-[#222227]/60"
+      className="relative py-24 md:py-36 px-6 md:px-12 max-w-7xl mx-auto"
     >
+      <ScrollGhostText text="Engineering" className="top-10 md:top-16" from={14} to={-34} />
       <SectionHeading
         index="01"
         tagline="Philosophy & Background"
@@ -193,12 +251,57 @@ export const About: React.FC = () => {
         </div>
 
         {/* Right Column: Expandable Engineering Pillars (Tap to Expand) */}
-        <div className="lg:col-span-5 flex flex-col gap-4 justify-center">
+        <div ref={pillarsRef} className="lg:col-span-5 flex flex-col gap-4">
+          {/* Layered portrait: monochrome base, colour revealed under the pointer */}
+          <div
+            ref={portraitRef}
+            data-cursor-label="PORTRAIT"
+            onPointerMove={moveFlashlight}
+            onPointerDown={moveFlashlight}
+            onPointerLeave={hideFlashlight}
+            className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-white/10 bg-[#0d0d10]"
+            style={{ touchAction: 'pan-y' }}
+          >
+            <img
+              src="/diptanu-portrait.jpg"
+              alt={`Portrait of ${personalData.name}`}
+              loading="lazy"
+              draggable={false}
+              className="about-portrait-layer absolute left-0 top-[-9%] w-full h-[118%] object-cover object-top grayscale contrast-125 brightness-90 will-change-transform"
+            />
+            <div
+              ref={colourRef}
+              aria-hidden="true"
+              className="about-portrait-layer absolute left-0 top-[-9%] w-full h-[118%] pointer-events-none will-change-transform transition-opacity duration-300"
+              style={{
+                opacity: 0,
+                WebkitMaskImage: 'radial-gradient(circle 130px at var(--mx, 50%) var(--my, 50%), #000 0%, transparent 100%)',
+                maskImage: 'radial-gradient(circle 130px at var(--mx, 50%) var(--my, 50%), #000 0%, transparent 100%)',
+              }}
+            >
+              <img
+                src="/diptanu-portrait.jpg"
+                alt=""
+                loading="lazy"
+                draggable={false}
+                className="w-full h-full object-cover object-top"
+              />
+            </div>
+            <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(0deg,rgba(0,0,0,0.22)_0_1px,transparent_1px_3px)]" />
+            <div className="absolute inset-x-0 bottom-0 h-1/3 pointer-events-none bg-gradient-to-t from-[#0d0d10] to-transparent" />
+            <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between pointer-events-none">
+              <span className="text-xl font-editorial-serif italic text-white">{personalData.name}</span>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-white/60">
+                {isCoarsePointer() ? 'Touch for colour' : 'Hover for colour'}
+              </span>
+            </div>
+          </div>
+
           {/* Pillar 1 */}
           <div
             onClick={() => setExpandedPillar(expandedPillar === 'alg' ? null : 'alg')}
             data-cursor-label="EXPAND"
-            className={`p-6 sm:p-8 rounded-2xl bg-[#111114] border transition-all duration-300 cursor-pointer active:scale-[0.99] ${
+            className={`about-pillar p-6 sm:p-8 rounded-2xl bg-[#111114] border transition-[border-color,background-color,box-shadow] duration-300 cursor-pointer active:scale-[0.99] ${
               expandedPillar === 'alg'
                 ? 'border-[#e4a853] bg-[#141418] shadow-[0_0_25px_rgba(228,168,83,0.15)]'
                 : 'border-[#222227] hover:border-[#383842]'
@@ -232,7 +335,7 @@ export const About: React.FC = () => {
           <div
             onClick={() => setExpandedPillar(expandedPillar === 'gnn' ? null : 'gnn')}
             data-cursor-label="EXPAND"
-            className={`p-6 sm:p-8 rounded-2xl bg-[#111114] border transition-all duration-300 cursor-pointer active:scale-[0.99] ${
+            className={`about-pillar p-6 sm:p-8 rounded-2xl bg-[#111114] border transition-[border-color,background-color,box-shadow] duration-300 cursor-pointer active:scale-[0.99] ${
               expandedPillar === 'gnn'
                 ? 'border-sky-400 bg-[#141418] shadow-[0_0_25px_rgba(56,189,248,0.15)]'
                 : 'border-[#222227] hover:border-[#383842]'
@@ -266,7 +369,7 @@ export const About: React.FC = () => {
           <div
             onClick={() => setExpandedPillar(expandedPillar === 'sys' ? null : 'sys')}
             data-cursor-label="EXPAND"
-            className={`p-6 sm:p-8 rounded-2xl bg-[#111114] border transition-all duration-300 cursor-pointer active:scale-[0.99] ${
+            className={`about-pillar p-6 sm:p-8 rounded-2xl bg-[#111114] border transition-[border-color,background-color,box-shadow] duration-300 cursor-pointer active:scale-[0.99] ${
               expandedPillar === 'sys'
                 ? 'border-emerald-400 bg-[#141418] shadow-[0_0_25px_rgba(52,211,153,0.15)]'
                 : 'border-[#222227] hover:border-[#383842]'

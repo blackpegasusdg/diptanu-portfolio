@@ -28,10 +28,18 @@ export const VariableProximityText: React.FC<VariableProximityTextProps> = ({
     setIsTouchDevice(window.matchMedia('(pointer: coarse)').matches);
   }, []);
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!containerRef.current) return;
-    const mouseX = e.clientX;
-    const mouseY = e.clientY;
+  const rafRef = useRef(0);
+  const pointerRef = useRef({ x: 0, y: 0 });
+
+  // Runs at most once per frame and skips work while the text is off-screen.
+  const applyProximity = useCallback(() => {
+    rafRef.current = 0;
+    const container = containerRef.current;
+    if (!container) return;
+    const bounds = container.getBoundingClientRect();
+    if (bounds.bottom < -radius || bounds.top > window.innerHeight + radius) return;
+
+    const { x: mouseX, y: mouseY } = pointerRef.current;
 
     letterRefs.current.forEach((letter) => {
       if (!letter) return;
@@ -59,6 +67,15 @@ export const VariableProximityText: React.FC<VariableProximityTextProps> = ({
       }
     });
   }, [radius, maxScale, minScale, highlightColor]);
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      pointerRef.current.x = e.clientX;
+      pointerRef.current.y = e.clientY;
+      if (!rafRef.current) rafRef.current = requestAnimationFrame(applyProximity);
+    },
+    [applyProximity]
+  );
 
   const handleMouseLeave = useCallback(() => {
     letterRefs.current.forEach((letter) => {
@@ -97,6 +114,7 @@ export const VariableProximityText: React.FC<VariableProximityTextProps> = ({
     }
 
     return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
       window.removeEventListener('mousemove', handleMouseMove);
       if (container) {
         container.removeEventListener('mouseleave', handleMouseLeave);

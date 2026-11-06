@@ -1,10 +1,27 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { personalData } from '../../data/portfolioData';
 import { ArrowUp } from 'lucide-react';
 import { GithubIcon, InstagramIcon, LetterboxdIcon } from '../common/BrandIcons';
+import { SplitChars } from '../common/SplitChars';
+import { NAV_LINKS, goToSection } from './Navbar';
+import { prefersReducedMotion, scrollToTarget } from '../../lib/motion';
+import { useActiveSection } from '../../lib/useActiveSection';
+import { useCharDrift } from '../../lib/useCharDrift';
+
+gsap.registerPlugin(ScrollTrigger);
+
+const NAV_IDS = NAV_LINKS.map((l) => l.id);
 
 export const Footer: React.FC = () => {
   const [time, setTime] = useState('');
+  const footerRef = useRef<HTMLElement>(null);
+  const dockRef = useRef<HTMLDivElement>(null);
+  const wordmarkRef = useRef<HTMLDivElement>(null);
+  const active = useActiveSection(NAV_IDS);
+
+  useCharDrift(wordmarkRef, { radius: 260, x: 18, y: 12, rotate: 3 });
 
   useEffect(() => {
     const updateTime = () => {
@@ -24,14 +41,93 @@ export const Footer: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  // The floating nav "lands" here: the dock grows out of the same pill shape
+  // the top navigation collapses into, and the wordmark rises behind it.
+  useEffect(() => {
+    if (!footerRef.current || prefersReducedMotion()) return;
+    const ctx = gsap.context(() => {
+      if (dockRef.current) {
+        gsap.fromTo(
+          dockRef.current,
+          { scaleX: 0.5, opacity: 0, y: 36 },
+          {
+            scaleX: 1,
+            opacity: 1,
+            y: 0,
+            duration: 1.1,
+            ease: 'expo.out',
+            scrollTrigger: {
+              trigger: footerRef.current,
+              start: 'top 80%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      }
+      if (wordmarkRef.current) {
+        gsap.from(wordmarkRef.current.querySelectorAll('.split-char'), {
+          yPercent: 120,
+          rotate: 6,
+          duration: 1.5,
+          ease: 'expo.out',
+          stagger: 0.045,
+          scrollTrigger: {
+            trigger: wordmarkRef.current,
+            start: 'top 95%',
+            toggleActions: 'play none none reverse',
+          },
+        });
+      }
+    }, footerRef);
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <footer className="border-t border-[#222227] bg-[#070709] text-[#a1a1aa] py-16 md:py-20">
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 pb-16 border-b border-white/5">
+    <footer
+      id="site-footer"
+      ref={footerRef}
+      className="relative bg-[#070709] text-[#a1a1aa] pt-24 md:pt-32 pb-10 overflow-hidden"
+    >
+      {/* Soft hand-off from the last section's background */}
+      <div className="absolute inset-x-0 -top-32 h-32 bg-gradient-to-b from-transparent to-[#070709] pointer-events-none" />
+
+      <div className="relative max-w-7xl mx-auto px-6 md:px-12">
+        {/* Navigation dock (desktop): visual continuation of the floating nav */}
+        <div
+          ref={dockRef}
+          className="hidden lg:flex mx-auto mb-16 w-max items-center gap-1 rounded-full border border-white/10 bg-[#0c0c10]/80 p-1.5 backdrop-blur-xl"
+          style={{ opacity: 0 }}
+        >
+          <button
+            type="button"
+            onClick={() => scrollToTarget(0)}
+            data-cursor="magnetic"
+            data-cursor-label="TOP"
+            aria-label="Back to top"
+            className="w-10 h-10 rounded-full bg-[#18181c] border border-[#27272a] hover:border-amber-400/60 flex items-center justify-center font-editorial-display font-bold text-sm tracking-tighter text-white transition-colors cursor-pointer"
+          >
+            DG
+          </button>
+          {NAV_LINKS.map((link) => (
+            <a
+              key={link.id}
+              href={`#${link.id}`}
+              data-cursor="magnetic"
+              data-cursor-label={link.label.toUpperCase()}
+              onClick={(e) => {
+                e.preventDefault();
+                goToSection(link.id);
+              }}
+              className={`px-3.5 py-2 rounded-full text-[11px] uppercase tracking-[0.18em] transition-colors ${
+                link.id === active ? 'bg-white/10 text-white' : 'text-[#a1a1aa] hover:text-white'
+              }`}
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 pb-16">
           {/* Brand info */}
           <div className="md:col-span-5 flex flex-col justify-between">
             <div>
@@ -54,21 +150,29 @@ export const Footer: React.FC = () => {
               Index
             </h4>
             <ul className="space-y-2.5 text-sm">
-              <li>
-                <a href="#about" data-cursor="magnetic" data-cursor-label="ABOUT" className="hover:text-white transition-colors">About Background</a>
-              </li>
-              <li>
-                <a href="#skills" data-cursor="magnetic" data-cursor-label="SKILLS" className="hover:text-white transition-colors">Technical Stack</a>
-              </li>
-              <li>
-                <a href="#projects" data-cursor="magnetic" data-cursor-label="WORKS" className="hover:text-white transition-colors">Featured Projects</a>
-              </li>
-              <li>
-                <a href="#learning" data-cursor="magnetic" data-cursor-label="STUDY" className="hover:text-white transition-colors">Currently Exploring</a>
-              </li>
-              <li>
-                <a href="#contact" data-cursor="magnetic" data-cursor-label="TALK" className="hover:text-white transition-colors">Get In Touch</a>
-              </li>
+              {[
+                { href: '#about', id: 'about', label: 'About Background', cursor: 'ABOUT' },
+                { href: '#skills', id: 'skills', label: 'Technical Stack', cursor: 'SKILLS' },
+                { href: '#projects', id: 'projects', label: 'Featured Projects', cursor: 'WORKS' },
+                { href: '#learning', id: 'learning', label: 'Currently Exploring', cursor: 'STUDY' },
+                { href: '#education', id: 'education', label: 'Education', cursor: 'SCHOOL' },
+                { href: '#contact', id: 'contact', label: 'Get In Touch', cursor: 'TALK' },
+              ].map((item) => (
+                <li key={item.id}>
+                  <a
+                    href={item.href}
+                    data-cursor="magnetic"
+                    data-cursor-label={item.cursor}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      goToSection(item.id);
+                    }}
+                    className="hover:text-white transition-colors"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -126,11 +230,20 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
+        {/* Closing wordmark: letters rise and then react to the cursor */}
+        <div
+          ref={wordmarkRef}
+          aria-label={personalData.name}
+          className="relative select-none font-editorial-serif italic text-white/90 text-[13vw] leading-[0.95] tracking-tight whitespace-nowrap text-center"
+        >
+          <SplitChars text={personalData.name} />
+        </div>
+
         {/* Bottom bar */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#71717a]">
+        <div className="pt-8 mt-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#71717a]">
           <p>© {new Date().getFullYear()} Diptanu Ghosh. Built with React, TypeScript & GSAP.</p>
           <button
-            onClick={scrollToTop}
+            onClick={() => scrollToTarget(0)}
             data-cursor="magnetic"
             data-cursor-label="TOP"
             className="flex items-center gap-2 text-white hover:text-amber-400 transition-colors group cursor-pointer"

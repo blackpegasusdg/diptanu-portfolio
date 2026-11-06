@@ -7,20 +7,24 @@ import { VariableProximityText } from '../common/VariableProximityText';
 import { ArrowDown, ArrowUpRight, FileText, Terminal, Sparkles } from 'lucide-react';
 import { GithubIcon, InstagramIcon, LetterboxdIcon } from '../common/BrandIcons';
 import { Hero3DCanvas } from '../common/Hero3DCanvas';
+import { isCoarsePointer, prefersReducedMotion, scrollToTarget } from '../../lib/motion';
 
 gsap.registerPlugin(ScrollTrigger);
 
 interface HeroProps {
+  /** Becomes true once the preloader has finished; starts the entrance. */
+  ready?: boolean;
   onOpenResumeModal: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
+export const Hero: React.FC<HeroProps> = ({ ready = true, onOpenResumeModal }) => {
   const heroRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
   const [activeChip, setActiveChip] = useState<string | null>(null);
+  const introRef = useRef<gsap.core.Timeline | null>(null);
 
   const interactiveChips = [
     { label: 'Python & PyTorch', highlight: 'GNN & TrustLens Core' },
@@ -29,57 +33,94 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
     { label: 'Graph Neural Nets', highlight: 'Relational Fraud Defense' },
   ];
 
+  // Entrance + scroll choreography. Entrance tweens animate the INNER elements
+  // (.hero-word, chips, ...) while the scroll scrub animates their OUTER
+  // wrappers (.hero-name-*, .hero-scrub-*), so the two never fight over the
+  // same transform. Pointer depth uses x / y while scrub uses xPercent / scale.
   useEffect(() => {
-    if (!heroRef.current) return;
+    const root = heroRef.current;
+    if (!root || prefersReducedMotion()) return;
+
+    let removePointer: (() => void) | null = null;
 
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ delay: 0.2 });
+      const lines = gsap.utils.toArray<HTMLElement>('.hero-line');
+      const words = gsap.utils.toArray<HTMLElement>('.hero-word');
 
-      tl.from(badgeRef.current, {
-        opacity: 0,
-        y: -20,
-        duration: 0.6,
-        ease: 'power3.out',
-      })
-      .from(subtitleRef.current, {
-        opacity: 0,
-        y: 25,
-        duration: 0.8,
-        ease: 'power3.out',
-      }, '-=0.2')
-      .from(actionsRef.current, {
-        opacity: 0,
-        y: 20,
-        duration: 0.8,
-        ease: 'power3.out',
-      }, '-=0.5')
-      .from('.hero-3d-wrapper', {
-        scale: 0.85,
-        opacity: 0,
-        duration: 1.2,
-        ease: 'power3.out',
-      }, '-=0.8');
+      // Words rise out of a mask; mask is released afterwards so the
+      // proximity-scale hover effect is never clipped.
+      gsap.set(lines, { overflow: 'hidden' });
 
-      // Scroll-driven Parallax Depth
-      gsap.to(headlineRef.current, {
-        scrollTrigger: {
-          trigger: heroRef.current,
-          start: 'top top',
-          end: 'bottom top',
-          scrub: 1,
-        },
-        y: 80,
-        opacity: 0.35,
-        ease: 'none',
-      });
-    }, heroRef);
+      const intro = gsap.timeline({ paused: true, defaults: { ease: 'expo.out' } });
+      intro
+        .from(badgeRef.current, { opacity: 0, y: -16, duration: 0.8 })
+        .from('.hero-eyebrow', { opacity: 0, x: -24, duration: 1 }, '<0.1')
+        .from(words, { yPercent: 118, rotate: 4, duration: 1.4, stagger: 0.12 }, '<0.05')
+        .add(() => {
+          gsap.set(lines, { overflow: 'visible' });
+        })
+        .from(subtitleRef.current, { opacity: 0, y: 28, duration: 1 }, '-=0.9')
+        .from('.hero-chip', { opacity: 0, y: 18, stagger: 0.06, duration: 0.8 }, '-=0.8')
+        .from(actionsRef.current, { opacity: 0, y: 20, duration: 0.9 }, '-=0.7')
+        .from('.hero-3d-wrapper', { scale: 0.8, opacity: 0, rotate: -6, duration: 1.6 }, '-=1.4')
+        .from('.hero-bottom', { opacity: 0, y: 20, duration: 0.9 }, '-=1');
+      introRef.current = intro;
 
-    return () => ctx.revert();
+      // Scroll: the name splits apart, supporting layers peel away at
+      // different depths while the portrait starts its colour -> dither arc.
+      gsap
+        .timeline({
+          defaults: { ease: 'none' },
+          scrollTrigger: { trigger: root, start: 'top top', end: 'bottom top', scrub: 1 },
+        })
+        .to('.hero-name-a', { xPercent: -30, opacity: 0.08 }, 0)
+        .to('.hero-name-b', { xPercent: 30, opacity: 0.08 }, 0)
+        .to(headlineRef.current, { y: -40 }, 0)
+        .to('.hero-scrub-b', { y: -110, opacity: 0 }, 0)
+        .to('.hero-scrub-c', { scale: 1.3, y: -90, opacity: 0 }, 0);
+
+      // Pointer depth: each layer moves a different distance.
+      if (!isCoarsePointer()) {
+        const ease = { duration: 1.2, ease: 'power3' };
+        const ax = gsap.quickTo('.hero-name-a', 'x', ease);
+        const ay = gsap.quickTo('.hero-name-a', 'y', ease);
+        const bx = gsap.quickTo('.hero-name-b', 'x', ease);
+        const by = gsap.quickTo('.hero-name-b', 'y', ease);
+        const cx = gsap.quickTo('.hero-scrub-c', 'x', ease);
+
+        const onMove = (e: PointerEvent) => {
+          const nx = e.clientX / window.innerWidth - 0.5;
+          const ny = e.clientY / window.innerHeight - 0.5;
+          ax(nx * -26);
+          ay(ny * -14);
+          bx(nx * 20);
+          by(ny * 12);
+          cx(nx * 34);
+        };
+        window.addEventListener('pointermove', onMove, { passive: true });
+        removePointer = () => window.removeEventListener('pointermove', onMove);
+      }
+    }, root);
+
+    return () => {
+      removePointer?.();
+      introRef.current = null;
+      ctx.revert();
+    };
   }, []);
 
+  // Play the entrance once the preloader is gone (with a safety net).
+  useEffect(() => {
+    if (!ready) return;
+    const intro = introRef.current;
+    if (!intro) return;
+    intro.play();
+    const safety = window.setTimeout(() => intro.progress(1), 7000);
+    return () => window.clearTimeout(safety);
+  }, [ready]);
+
   const scrollTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    scrollToTarget(`#${id}`);
   };
 
   return (
@@ -119,8 +160,8 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
       <div className="my-auto py-8 md:py-12 z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         {/* Left Column */}
         <div className="lg:col-span-7">
-          <div className="overflow-hidden mb-2">
-            <p className="text-xs sm:text-sm uppercase tracking-[0.3em] text-[#a1a1aa] font-editorial-display flex items-center gap-2">
+          <div className="mb-2">
+            <p className="hero-eyebrow text-xs sm:text-sm uppercase tracking-[0.3em] text-[#a1a1aa] font-editorial-display flex items-center gap-2">
               <Terminal className="w-4 h-4 text-[#e4a853]" />
               <span>Computer Science & Engineering Student / Developer</span>
             </p>
@@ -131,26 +172,39 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
             ref={headlineRef}
             className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-editorial-serif tracking-tight text-white leading-[0.95] mt-2 mb-6 select-none will-change-transform"
           >
-            <div className="block leading-none py-2">
-              <VariableProximityText
-                text="Diptanu"
-                className="font-editorial-serif italic mr-3 sm:mr-5 cursor-pointer text-white"
-                radius={160}
-                maxScale={1.28}
-                highlightColor="#e4a853"
-              />
-              <VariableProximityText
-                text="Ghosh"
-                className="font-editorial-serif font-normal cursor-pointer text-white"
-                radius={160}
-                maxScale={1.28}
-                highlightColor="#38bdf8"
-              />
+            <div className="block leading-none py-2" aria-label={personalData.name}>
+              <span className="hero-name hero-name-a inline-block will-change-transform">
+                <span className="hero-line inline-block align-bottom">
+                  <span className="hero-word inline-block">
+                    <VariableProximityText
+                      text="Diptanu"
+                      className="font-editorial-serif italic mr-3 sm:mr-5 cursor-pointer text-white"
+                      radius={160}
+                      maxScale={1.28}
+                      highlightColor="#e4a853"
+                    />
+                  </span>
+                </span>
+              </span>
+              <span className="hero-name hero-name-b inline-block will-change-transform">
+                <span className="hero-line inline-block align-bottom">
+                  <span className="hero-word inline-block">
+                    <VariableProximityText
+                      text="Ghosh"
+                      className="font-editorial-serif font-normal cursor-pointer text-white"
+                      radius={160}
+                      maxScale={1.28}
+                      highlightColor="#38bdf8"
+                    />
+                  </span>
+                </span>
+              </span>
             </div>
           </h1>
 
+          <div className="hero-scrub-b">
           {/* Subtitle & Focus with Proximity Text */}
-          <div className="overflow-hidden">
+          <div>
             <p
               ref={subtitleRef}
               className="max-w-2xl text-base sm:text-lg md:text-xl text-[#d4d4d8] font-light leading-relaxed"
@@ -162,14 +216,14 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
           </div>
 
           {/* Interactive Responsive Floating Technology Chips */}
-          <div className="mt-6 flex flex-wrap gap-2">
+          <div className="hero-chips mt-6 flex flex-wrap gap-2">
             {interactiveChips.map((chip) => (
               <button
                 key={chip.label}
                 data-cursor="magnetic"
                 data-cursor-label="TECH"
                 onClick={() => setActiveChip(activeChip === chip.label ? null : chip.label)}
-                className={`text-xs px-3.5 py-1.5 rounded-full border transition-all duration-200 cursor-pointer active:scale-95 ${
+                className={`hero-chip text-xs px-3.5 py-1.5 rounded-full border transition-[background-color,border-color,color,box-shadow] duration-200 cursor-pointer active:scale-95 ${
                   activeChip === chip.label
                     ? 'bg-[#e4a853] text-black border-[#e4a853] font-semibold shadow-[0_0_15px_rgba(228,168,83,0.3)]'
                     : 'bg-[#121216]/90 text-[#a1a1aa] border-white/10 hover:border-white/40 hover:text-white backdrop-blur-sm'
@@ -215,6 +269,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
               <span>Download Resume</span>
             </MagneticButton>
           </div>
+          </div>
         </div>
 
         {/* Right Column: Interactive 3D Three.js Polytope alongside Dithered Background */}
@@ -222,12 +277,14 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResumeModal }) => {
           className="hero-3d-wrapper lg:col-span-5 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
           data-cursor-label="DRAG 3D"
         >
-          <Hero3DCanvas />
+          <div className="hero-scrub-c">
+            <Hero3DCanvas />
+          </div>
         </div>
       </div>
 
       {/* Bottom Bar: Social Links & Scroll Indicator */}
-      <div className="flex items-end justify-between border-t border-[#222227] pt-6 z-10 bg-[#070709]/40 backdrop-blur-sm px-2 rounded-xl">
+      <div className="hero-bottom flex items-end justify-between border-t border-[#222227] pt-6 z-10 bg-[#070709]/40 backdrop-blur-sm px-2 rounded-xl">
         <div className="flex items-center gap-4 text-sm">
           <span className="text-xs uppercase tracking-widest text-[#71717a] hidden sm:inline-block font-editorial-display mr-2">
             Profiles:

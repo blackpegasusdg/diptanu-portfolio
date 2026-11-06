@@ -1,6 +1,12 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SectionHeading } from '../common/SectionHeading';
+import { ScrollGhostText } from '../common/ScrollGhostText';
+import { prefersReducedMotion } from '../../lib/motion';
 import { Terminal, Cpu, Layout, Smartphone, Wrench, Link2, Sparkles } from 'lucide-react';
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface TechNode {
   name: string;
@@ -14,6 +20,8 @@ export const Skills: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('Programming Languages');
   const [activeNode, setActiveNode] = useState<TechNode | null>(null);
   const [cardGlares, setCardGlares] = useState<{ [key: string]: { x: number; y: number; opacity: number } }>({});
+  const gridRef = useRef<HTMLDivElement>(null);
+  const userSwitched = useRef(false);
 
   const categories = [
     { name: 'Programming Languages', icon: Terminal, color: '#e4a853' },
@@ -57,6 +65,36 @@ export const Skills: React.FC = () => {
 
   const currentNodes = allNodes.filter((n) => n.category === selectedCategory);
 
+  // Each hub switch re-deals the cards with a clipped wipe + stagger; the very
+  // first deal waits until the grid scrolls into view.
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid || prefersReducedMotion()) return;
+    const first = !userSwitched.current;
+
+    const tween = gsap.fromTo(
+      grid.children,
+      { y: 44, opacity: 0, clipPath: 'inset(0 0 100% 0)' },
+      {
+        y: 0,
+        opacity: 1,
+        clipPath: 'inset(0 0 0% 0)',
+        duration: 0.8,
+        ease: 'expo.out',
+        stagger: 0.07,
+        clearProps: 'clipPath,opacity,transform',
+        scrollTrigger: first
+          ? { trigger: grid, start: 'top 88%', once: true }
+          : undefined,
+      }
+    );
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+      gsap.set(grid.children, { clearProps: 'clipPath,opacity,transform' });
+    };
+  }, [selectedCategory]);
+
   const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>, nodeName: string) => {
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
@@ -86,7 +124,8 @@ export const Skills: React.FC = () => {
   };
 
   return (
-    <section id="skills" className="py-24 md:py-36 px-6 md:px-12 max-w-7xl mx-auto border-t border-[#222227]/60">
+    <section id="skills" className="relative py-24 md:py-36 px-6 md:px-12 max-w-7xl mx-auto">
+      <ScrollGhostText text="Capabilities" className="top-10 md:top-16" from={-4} to={-40} />
       <SectionHeading
         index="02"
         tagline="Interactive Technology Ecosystem"
@@ -106,6 +145,7 @@ export const Skills: React.FC = () => {
               data-cursor="magnetic"
               data-cursor-label="HUB"
               onClick={() => {
+                userSwitched.current = true;
                 setSelectedCategory(cat.name);
                 setActiveNode(null);
               }}
@@ -141,7 +181,7 @@ export const Skills: React.FC = () => {
       </div>
 
       {/* Active Hub Technologies Matrix with 3D Tilt & Specular Light */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {currentNodes.map((node) => {
           const isActive = activeNode?.name === node.name;
           const glare = cardGlares[node.name] || { x: 0, y: 0, opacity: 0 };
@@ -153,7 +193,7 @@ export const Skills: React.FC = () => {
               onMouseMove={(e) => handleCardMouseMove(e, node.name)}
               onMouseLeave={(e) => handleCardMouseLeave(e, node.name)}
               onClick={() => setActiveNode(isActive ? null : node)}
-              className={`relative overflow-hidden p-6 rounded-2xl border transition-all duration-200 flex flex-col justify-between cursor-pointer active:scale-[0.98] will-change-transform ${
+              className={`relative overflow-hidden p-6 rounded-2xl border transition-[border-color,background-color,box-shadow] duration-200 flex flex-col justify-between cursor-pointer active:scale-[0.98] will-change-transform ${
                 isActive
                   ? 'bg-[#1a1a24] border-amber-400/60 shadow-[0_0_30px_rgba(228,168,83,0.15)]'
                   : 'bg-[#111114] border-[#222227] hover:border-[#3f3f46] hover:bg-[#141418]'

@@ -23,7 +23,7 @@ export const Hero3DCanvas: React.FC = () => {
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, window.matchMedia('(pointer: coarse)').matches ? 1.25 : 1.75));
     container.appendChild(renderer.domElement);
 
     // Group to hold our interactive 3D polytope
@@ -101,7 +101,13 @@ export const Hero3DCanvas: React.FC = () => {
     let animationFrameId: number;
     let clock = new THREE.Clock();
 
+    // Only render while the lattice is on screen.
+    let visible = true;
     const animate = () => {
+      if (!visible) {
+        animationFrameId = 0;
+        return;
+      }
       animationFrameId = requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
@@ -128,6 +134,12 @@ export const Hero3DCanvas: React.FC = () => {
 
     animate();
 
+    const visibilityObserver = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible && !animationFrameId) animate();
+    });
+    visibilityObserver.observe(container);
+
     const handleResize = () => {
       if (!container) return;
       const newW = container.clientWidth || 320;
@@ -140,6 +152,7 @@ export const Hero3DCanvas: React.FC = () => {
     window.addEventListener('resize', handleResize);
 
     return () => {
+      visibilityObserver.disconnect();
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('mousemove', handlePointerMove);
       container.removeEventListener('touchmove', handlePointerMove);

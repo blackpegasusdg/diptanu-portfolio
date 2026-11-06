@@ -1,14 +1,34 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SectionHeading } from '../common/SectionHeading';
+import { SketchReveal } from '../common/SketchReveal';
+import { ScrollGhostText } from '../common/ScrollGhostText';
+import { prefersReducedMotion } from '../../lib/motion';
 import { personalData } from '../../data/portfolioData';
 import { Copy, Check, Send } from 'lucide-react';
 import { GithubIcon, InstagramIcon, LetterboxdIcon } from '../common/BrandIcons';
 
+gsap.registerPlugin(ScrollTrigger);
+
 export const Contact: React.FC = () => {
+  const gridRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // The two columns converge from opposite sides as the page closes.
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid || prefersReducedMotion()) return;
+    const ctx = gsap.context(() => {
+      const trigger = { trigger: grid, start: 'top 90%', end: 'top 45%', scrub: 0.8 };
+      gsap.from('.contact-left', { x: -60, opacity: 0.2, ease: 'none', scrollTrigger: trigger });
+      gsap.from('.contact-right', { x: 60, opacity: 0.2, ease: 'none', scrollTrigger: trigger });
+    }, grid);
+    return () => ctx.revert();
+  }, []);
 
   const copyEmail = () => {
     navigator.clipboard.writeText(personalData.email);
@@ -45,7 +65,8 @@ export const Contact: React.FC = () => {
   };
 
   return (
-    <section id="contact" className="py-24 md:py-36 px-6 md:px-12 max-w-7xl mx-auto border-t border-[#222227]/60">
+    <section id="contact" className="relative py-24 md:py-36 px-6 md:px-12 max-w-7xl mx-auto">
+      <ScrollGhostText text="Say hello" className="top-10 md:top-16" from={8} to={-36} />
       <SectionHeading
         index="06"
         tagline="Initiate Contact"
@@ -53,9 +74,11 @@ export const Contact: React.FC = () => {
         description="Whether you have an internship role, an AI/GNN research project, or want to discuss software craft—my inbox is always monitored."
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mt-12">
+      <SketchReveal />
+
+      <div ref={gridRef} className="grid grid-cols-1 lg:grid-cols-12 gap-12 mt-12">
         {/* Left Column: Direct channels and social presence */}
-        <div className="lg:col-span-5 flex flex-col justify-between space-y-8">
+        <div className="contact-left lg:col-span-5 flex flex-col justify-between space-y-8">
           <div>
             <h3 className="text-xs uppercase tracking-widest text-[#71717a] font-editorial-display mb-4">
               Direct Inquiries
@@ -156,7 +179,7 @@ export const Contact: React.FC = () => {
         </div>
 
         {/* Right Column: Working Contact Form */}
-        <div className="lg:col-span-7">
+        <div className="contact-right lg:col-span-7">
           <div className="p-8 sm:p-12 rounded-3xl bg-[#111114] border border-[#222227] shadow-[0_15px_45px_rgba(0,0,0,0.5)]">
             <h3 className="text-xl sm:text-2xl font-editorial-serif text-white tracking-tight mb-2">
               Send a Direct Message
