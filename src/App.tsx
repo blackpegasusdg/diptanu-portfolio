@@ -1,7 +1,8 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import './experience.css';
 import { CustomCursor } from './components/common/CustomCursor';
 import { Preloader } from './components/common/Preloader';
 import { Navbar } from './components/layout/Navbar';
@@ -26,74 +27,112 @@ export const App: React.FC = () => {
   const mainRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Initialize Lenis smooth scroll
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: 'vertical',
-      smoothWheel: true,
-      wheelMultiplier: 1,
-      touchMultiplier: 2,
-    });
-
-    // Synchronize Lenis with GSAP ScrollTrigger
-    lenis.on('scroll', ScrollTrigger.update);
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const lenis = reduceMotion
+      ? null
+      : new Lenis({
+          duration: 1.15,
+          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+          orientation: 'vertical',
+          smoothWheel: true,
+          wheelMultiplier: 0.9,
+          touchMultiplier: 1.6,
+        });
 
     const tickerCallback = (time: number) => {
-      lenis.raf(time * 1000);
+      lenis?.raf(time * 1000);
     };
 
-    gsap.ticker.add(tickerCallback);
-    gsap.ticker.lagSmoothing(0);
-
-    // Scroll progress bar indicator
-    if (progressBarRef.current) {
-      gsap.to(progressBarRef.current, {
-        scrollTrigger: {
-          trigger: document.documentElement,
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: 0.3,
-        },
-        scaleX: 1,
-        ease: 'none',
-      });
+    if (lenis) {
+      lenis.on('scroll', ScrollTrigger.update);
+      gsap.ticker.add(tickerCallback);
+      gsap.ticker.lagSmoothing(0);
     }
 
-    // Dynamic background color shifts between sections
-    const sectionColors = [
-      { id: 'home', bg: '#070709' },
-      { id: 'about', bg: '#090a12' },
-      { id: 'skills', bg: '#080c16' },
-      { id: 'projects', bg: '#0d0d14' },
-      { id: 'learning', bg: '#0b0a16' },
-      { id: 'contact', bg: '#08080a' },
-    ];
-
-    sectionColors.forEach(({ id, bg }) => {
-      const el = document.getElementById(id);
-      if (el && mainRef.current) {
-        ScrollTrigger.create({
-          trigger: el,
-          start: 'top 50%',
-          end: 'bottom 50%',
-          onEnter: () => {
-            if (mainRef.current) {
-              mainRef.current.style.backgroundColor = bg;
-            }
-          },
-          onEnterBack: () => {
-            if (mainRef.current) {
-              mainRef.current.style.backgroundColor = bg;
-            }
+    // Keep all page-level ScrollTriggers scoped and clean them up on unmount.
+    const context = gsap.context(() => {
+      if (!reduceMotion && progressBarRef.current) {
+        gsap.to(progressBarRef.current, {
+          scaleX: 1,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: document.documentElement,
+            start: 'top top',
+            end: 'bottom bottom',
+            scrub: 0.35,
           },
         });
       }
-    });
+
+      // Subtle editorial reveal: section content settles into place as it enters view.
+      if (!reduceMotion) {
+        gsap.utils.toArray<HTMLElement>('main > section[id]:not(#home)').forEach((section) => {
+          const content = Array.from(section.children).filter(
+            (child): child is HTMLElement => child instanceof HTMLElement,
+          );
+
+          if (content.length) {
+            gsap.fromTo(
+              content,
+              { y: 34, opacity: 0.18 },
+              {
+                y: 0,
+                opacity: 1,
+                ease: 'none',
+                stagger: 0.06,
+                scrollTrigger: {
+                  trigger: section,
+                  start: 'top 84%',
+                  end: 'top 42%',
+                  scrub: 0.7,
+                  invalidateOnRefresh: true,
+                },
+              },
+            );
+          }
+        });
+      }
+
+      // Let each chapter subtly shift the atmosphere without hard scene cuts.
+      const sectionColors = [
+        { id: 'home', bg: '#070709' },
+        { id: 'about', bg: '#090a12' },
+        { id: 'skills', bg: '#080c16' },
+        { id: 'projects', bg: '#0d0d14' },
+        { id: 'learning', bg: '#0b0a16' },
+        { id: 'education', bg: '#090b12' },
+        { id: 'contact', bg: '#08080a' },
+      ];
+
+      sectionColors.forEach(({ id, bg }) => {
+        const section = document.getElementById(id);
+        if (!section || !mainRef.current) return;
+
+        ScrollTrigger.create({
+          trigger: section,
+          start: 'top 55%',
+          end: 'bottom 45%',
+          onEnter: () => {
+            if (mainRef.current) mainRef.current.style.backgroundColor = bg;
+          },
+          onEnterBack: () => {
+            if (mainRef.current) mainRef.current.style.backgroundColor = bg;
+          },
+        });
+      });
+    }, mainRef);
+
+    // Recalculate trigger positions after the browser has laid out the page.
+    const refreshFrame = window.requestAnimationFrame(() => ScrollTrigger.refresh());
 
     return () => {
-      gsap.ticker.remove(tickerCallback);
-      lenis.destroy();
+      window.cancelAnimationFrame(refreshFrame);
+      context.revert();
+      if (lenis) {
+        gsap.ticker.remove(tickerCallback);
+        lenis.destroy();
+        gsap.ticker.lagSmoothing(500, 33);
+      }
     };
   }, []);
 
@@ -111,28 +150,22 @@ export const App: React.FC = () => {
       ref={mainRef}
       className="relative min-h-screen bg-[#070709] text-[#f4f4f5] selection:bg-[#27272a] selection:text-white transition-colors duration-700 ease-out"
     >
-      {/* Precision Top Scroll Progress Bar */}
       <div
         ref={progressBarRef}
+        aria-hidden="true"
         className="fixed top-0 left-0 right-0 h-[2.5px] bg-[#e4a853] z-50 origin-left scale-x-0 shadow-[0_0_10px_#e4a853]"
       />
 
-      {/* Editorial subtle grid background */}
-      <div className="fixed inset-0 pointer-events-none bg-editorial-grid z-0 opacity-40" />
+      <div aria-hidden="true" className="fixed inset-0 pointer-events-none bg-editorial-grid z-0 opacity-40" />
+      <div aria-hidden="true" className="experience-vignette" />
+      <div aria-hidden="true" className="experience-grain" />
 
-      {/* Scroll-Driven Black & White Dithered Portrait Background */}
       <DitheredPortraitCanvas />
 
-      {/* Intro Preloader */}
       {loading && <Preloader onComplete={() => setLoading(false)} />}
-
-      {/* Desktop Magnetic Custom Cursor */}
       <CustomCursor />
-
-      {/* Sticky Editorial Navigation */}
       <Navbar onOpenResumeModal={() => setResumeModalOpen(true)} />
 
-      {/* Main Content Sections */}
       <main className="relative z-10 flex flex-col">
         <Hero onOpenResumeModal={() => setResumeModalOpen(true)} />
         <KineticMarquee items={marqueeKeywords} />
@@ -144,10 +177,8 @@ export const App: React.FC = () => {
         <Contact />
       </main>
 
-      {/* Minimalist Editorial Footer */}
       <Footer />
 
-      {/* Interactive Resume View & Print Modal */}
       <ResumeModal
         isOpen={resumeModalOpen}
         onClose={() => setResumeModalOpen(false)}
