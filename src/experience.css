@@ -1,0 +1,84 @@
+/* KODE-inspired interaction layer — built on the portfolio's existing visual system. */
+
+:root {
+  --experience-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+#home {
+  min-height: min(100svh, 1100px);
+}
+
+#home h1 {
+  text-wrap: balance;
+}
+
+#home .hero-3d-wrapper {
+  transform-style: preserve-3d;
+}
+
+main > section[id] {
+  position: relative;
+}
+
+main > section[id] > * {
+  backface-visibility: hidden;
+}
+
+main > section:not(#home) h2,
+main > section:not(#home) h3 {
+  text-wrap: pretty;
+}
+
+main button,
+main a,
+footer button,
+footer a {
+  touch-action: manipulation;
+}
+
+main button:active,
+main a:active,
+footer button:active,
+footer a:active {
+  transition-duration: 90ms;
+}
+
+main [class*="rounded-2xl"],
+main [class*="rounded-3xl"] {
+  transform-origin: center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  main [class*="rounded-2xl"]:hover,
+  main [class*="rounded-3xl"]:hover {
+    border-color: rgba(228, 168, 83, 0.24);
+  }
+
+  main a:not([class*="rounded-full"]):hover {
+    color: #f5d39d;
+  }
+}
+
+/* Prevent decorative layers from ever intercepting touch or pointer input. */
+.experience-grain,
+.experience-vignette,
+.bg-editorial-grid {
+  pointer-events: none;
+}
+
+/* Avoid motion-heavy smooth scrolling on devices that request reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body {
+    scroll-behavior: auto !important;
+  }
+
+  #home .hero-3d-wrapper,
+  main > section[id] > * {
+    transform: none !important;
+  }
+}
