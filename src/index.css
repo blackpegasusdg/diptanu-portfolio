@@ -18,15 +18,30 @@
 
 :root {
   color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-padding-top: 6rem;
 }
 
-html, body {
+html,
+body {
   background-color: #0a0a0c;
   color: #f4f4f5;
   font-family: var(--font-sans);
   overflow-x: hidden;
   margin: 0;
   padding: 0;
+}
+
+body {
+  min-width: 320px;
+}
+
+::selection {
+  color: #09090b;
+  background: #e4a853;
 }
 
 /* Custom scrollbar */
@@ -37,15 +52,16 @@ html, body {
   background: #0a0a0c;
 }
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: linear-gradient(180deg, #e4a853, #55515a);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: #f3c47e;
 }
 
 /* Lenis smooth scrolling recommendations */
-html.lenis, html.lenis body {
+html.lenis,
+html.lenis body {
   height: auto;
 }
 .lenis.lenis-smooth {
@@ -65,32 +81,101 @@ html.lenis, html.lenis body {
 .font-editorial-serif {
   font-family: "Instrument Serif", Georgia, serif;
 }
-
 .font-editorial-sans {
   font-family: "Plus Jakarta Sans", system-ui, sans-serif;
 }
-
 .font-editorial-display {
   font-family: "Space Grotesk", system-ui, sans-serif;
 }
 
 /* Subtle editorial grid overlay */
 .bg-editorial-grid {
-  background-size: 40px 40px;
-  background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  mask-image: linear-gradient(to bottom, black 0%, rgba(0, 0, 0, 0.35) 70%, transparent 100%);
 }
 
-/* Mask text animation utility */
+/* Editorial atmosphere: grain, edge light and soft section transitions */
+.experience-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.12;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+.experience-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 0%, transparent 35%, rgba(0, 0, 0, 0.2) 100%),
+    linear-gradient(180deg, rgba(7, 7, 9, 0.08), transparent 25%, transparent 75%, rgba(7, 7, 9, 0.24));
+}
+
+main > section[id] {
+  scroll-margin-top: 5.5rem;
+}
+
+main > section:not(#home) {
+  position: relative;
+  isolation: isolate;
+}
+
+main > section:not(#home)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: max(1.5rem, calc((100% - 80rem) / 2));
+  right: max(1.5rem, calc((100% - 80rem) / 2));
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(228, 168, 83, 0.18), rgba(255, 255, 255, 0.08), transparent);
+  opacity: 0.8;
+}
+
 .clip-text-mask {
   clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
 }
 
-/* Noise texture overlay for editorial depth */
 .noise-overlay {
   background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
   background-size: 24px 24px;
+}
+
+/* Tactile hover states for existing cards, links and controls */
+a,
+button,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid rgba(228, 168, 83, 0.9);
+  outline-offset: 4px;
+}
+
+main a,
+main button,
+footer a,
+footer button {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-duration: 260ms;
+  transition-timing-function: cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+
+main [data-cursor="magnetic"]:active,
+footer [data-cursor="magnetic"]:active {
+  transform: scale(0.97);
 }
 
 @keyframes fadeIn {
@@ -106,4 +191,36 @@ html.lenis, html.lenis body {
 
 .animate-fadeIn {
   animation: fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  main a:hover,
+  footer a:hover {
+    text-shadow: 0 0 24px rgba(228, 168, 83, 0.12);
+  }
+}
+
+@media (max-width: 767px) {
+  .experience-grain {
+    opacity: 0.075;
+  }
+
+  .experience-vignette {
+    background: linear-gradient(180deg, rgba(7, 7, 9, 0.06), transparent 45%, rgba(7, 7, 9, 0.18));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .experience-grain {
+    display: none;
+  }
 }
